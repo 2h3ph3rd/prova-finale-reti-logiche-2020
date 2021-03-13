@@ -1,10 +1,11 @@
+FILE_NAME = top_level_tb
+
 all:
-	ghdl -a -fsynopsys -fexplicit project_tb.vhd
-	ghdl -e -fsynopsys -fexplicit project_tb
-	ghdl -r -fsynopsys -fexplicit project_tb
+	ghdl -a -fsynopsys -fexplicit $(FILE_NAME).vhd
+	ghdl -e -fsynopsys -fexplicit $(FILE_NAME)
+	ghdl -r -fsynopsys -fexplicit $(FILE_NAME)
 
 clean:
-	rm project_tb.o
+	rm *.o
 	rm work-*.cf
-	rm e~project_tb.o
 	rm project_tb
