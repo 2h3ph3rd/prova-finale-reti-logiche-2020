@@ -1,4 +1,12 @@
-project_tb.o
-e~project_tb.o
+# To ignore temp file without extension:
+# 1. Ignore all
+*
+# 2. Unignore all with extensions
+!*.*
+# 3. Unignore all dirs
+!*/
+
+# Ignore output files
+*.o
+# Ignore work files
 work-*.cf
-project_tb
