@@ -10,3 +10,5 @@
 *.o
 # Ignore work files
 work-*.cf
+# Ignore waves files
+*.ghw

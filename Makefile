@@ -12,3 +12,4 @@ clean:
 	rm *.o
 	rm work-*.cf
 	rm project_tb
+	rm *.ghw
