@@ -1,0 +1,4 @@
+{
+    "editor.defaultFormatter": "Vinrobot.vhdl-formatter",
+    "editor.formatOnSave": true
+}
