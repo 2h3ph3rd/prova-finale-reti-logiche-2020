@@ -7,7 +7,8 @@ ENTITY top_level IS
         B : IN STD_LOGIC;
         C : IN STD_LOGIC;
         D : IN STD_LOGIC;
-        O : OUT STD_LOGIC);
+        O : OUT STD_LOGIC
+    );
 END top_level;
 
 ARCHITECTURE Behavioral OF top_level IS
