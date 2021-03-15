@@ -1,15 +1,13 @@
-FILE_NAME = top_level_tb
+FILE_NAME = top_level
+FLAGS = -fsynopsys
 
 all:
-	ghdl -a -fsynopsys -fexplicit $(FILE_NAME).vhd
-	ghdl -e -fsynopsys -fexplicit $(FILE_NAME)
-	ghdl -r $(FILE_NAME) --wave=wave.ghw
-
-waves:
-	gtkwave wave.ghw
+	ghdl -a $(FLAGS) $(FILE_NAME).vhd
+	ghdl -a $(FLAGS) $(FILE_NAME)_tb.vhd
+	ghdl -e $(FLAGS) $(FILE_NAME)_tb
+	ghdl -r $(FILE_NAME)_tb
 
 clean:
 	rm *.o
 	rm work-*.cf
-	rm project_tb
-	rm *.ghw
+	rm $(FILE_NAME)_tb
