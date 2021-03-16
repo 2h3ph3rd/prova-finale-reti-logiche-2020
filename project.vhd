@@ -28,7 +28,6 @@ END project_reti_logiche;
 ARCHITECTURE Behavioral OF project_reti_logiche IS
     TYPE state IS (
         RESET,
-        READ_START,
         READ_COLS_REQ,
         READ_COLS,
         READ_ROWS_REQ,
@@ -41,26 +40,32 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
         ADDR_CALC,
         CHECK_FOR_MIN_AND_MAX,
         WRITE_START,
+        SAVE_SHIFT_LEVEL,
         WRITE_DATA_READ,
         WRITE_DATA_REQ,
+        EQUALIZE_PIXEL_SUBTRACT,
+        EQUALIZE_PIXEL_SHIFT,
         WRITE_DATA,
         WRITE_END,
         DONE
     );
 
     CONSTANT MAX_POSSIBLE_VALUE : INTEGER := 255;
+    CONSTANT EMPTY_VECTOR : STD_LOGIC_VECTOR(7 DOWNTO 0) := "00000000";
     CONSTANT MAX_DIM : INTEGER := 128;
 
-    SIGNAL min : INTEGER RANGE 0 TO MAX_POSSIBLE_VALUE;
-    SIGNAL max : INTEGER RANGE 0 TO MAX_POSSIBLE_VALUE;
+    SIGNAL min_pixel_value : INTEGER RANGE 0 TO MAX_POSSIBLE_VALUE;
+    SIGNAL max_pixel_value : INTEGER RANGE 0 TO MAX_POSSIBLE_VALUE;
 
-    SIGNAL cols : INTEGER RANGE 0 TO MAX_DIM;
-    SIGNAL rows : INTEGER RANGE 0 TO MAX_DIM;
+    SIGNAL cols : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL rows : STD_LOGIC_VECTOR(7 DOWNTO 0);
     SIGNAL dim : INTEGER RANGE 0 TO MAX_DIM * MAX_DIM;
 
     -- Add two position to manage double shift
-    SIGNAL byte : STD_LOGIC_VECTOR(7 DOWNTO 0);
-    SIGNAL pixel : INTEGER RANGE 0 TO MAX_POSSIBLE_VALUE;
+    SIGNAL pixel : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL tmp_pixel : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL unsigned_tmp_pixel : UNSIGNED (15 DOWNTO 0);
+    SIGNAL new_pixel : INTEGER RANGE 0 TO MAX_POSSIBLE_VALUE;
 
     SIGNAL shift_level : INTEGER RANGE 0 TO 8;
     SIGNAL delta_value : INTEGER RANGE 0 TO MAX_POSSIBLE_VALUE;
@@ -70,6 +75,7 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
 
     SIGNAL state_curr : state;
     SIGNAL state_next : state;
+    SIGNAL state_after_count_inc : state;
 
 BEGIN
     main : PROCESS (i_clk)
@@ -85,63 +91,61 @@ BEGIN
             CASE state_curr IS
 
                 WHEN RESET =>
+                    o_done <= '0';
                     -- Initialize all values
-                    min <= MAX_POSSIBLE_VALUE;
-                    max <= 0;
-                    tmp_count <= 0;
-                    count <= 0;
-                    cols <= 0;
-                    rows <= 0;
-                    byte <= "00000000";
-                    pixel <= 0;
+                    cols <= EMPTY_VECTOR;
+                    rows <= EMPTY_VECTOR;
+                    pixel <= EMPTY_VECTOR;
+                    tmp_pixel <= EMPTY_VECTOR & EMPTY_VECTOR;
+
+                    min_pixel_value <= MAX_POSSIBLE_VALUE;
+
                     shift_level <= 0;
                     delta_value <= 0;
                     dim <= 0;
+                    max_pixel_value <= 0;
+                    tmp_count <= 0;
+                    count <= 0;
+                    new_pixel <= 0;
                     -- Check for start
                     IF i_start = '1' THEN
-                        o_done <= '0';
-                        state_next <= READ_START;
+                        state_next <= READ_COLS_REQ;
                     ELSE
                         state_next <= RESET;
                     END IF;
 
-                WHEN READ_START =>
-                    -- Enable memory access
-                    o_we <= '0';
-                    o_en <= '1';
-
-                    state_next <= READ_COLS_REQ;
-
                 WHEN READ_COLS_REQ =>
+                    -- Enable memory access
+                    o_en <= '1';
+                    o_we <= '0';
                     -- First value stored in memory is num columns
                     o_address <= STD_LOGIC_VECTOR(to_unsigned(0, 16));
-
                     state_next <= READ_COLS;
 
                 WHEN READ_COLS =>
-                    -- Save num columns
-                    cols <= to_integer(unsigned(i_data));
-
+                    -- Save num cols
+                    cols <= i_data;
                     state_next <= READ_ROWS_REQ;
 
                 WHEN READ_ROWS_REQ =>
+                    -- Enable memory access
+                    o_en <= '1';
+                    o_we <= '0';
                     -- Second value stored in memory is num rows
                     o_address <= STD_LOGIC_VECTOR(to_unsigned(1, 16));
-
                     state_next <= READ_ROWS;
 
                 WHEN READ_ROWS =>
                     -- Save num rows
-                    rows <= to_integer(unsigned(i_data));
-
+                    rows <= i_data;
                     state_next <= READ_DATA_CHECK;
 
                 WHEN READ_DATA_CHECK =>
                     -- Now we have both rows and columns number
                     -- Calculate image dimension
-                    dim <= rows * cols;
+                    dim <= to_integer(unsigned(rows)) * to_integer(unsigned(cols));
                     -- If image is empty there is nothing to do
-                    IF dim = 0 THEN
+                    IF rows = EMPTY_VECTOR OR cols = EMPTY_VECTOR THEN
                         state_next <= DONE;
                     ELSE
                         state_next <= READ_DATA_REQ;
@@ -151,6 +155,7 @@ BEGIN
                     -- Enable memory access
                     o_we <= '0';
                     o_en <= '1';
+                    state_after_count_inc <= READ_DATA;
                     state_next <= INC_TMP_COUNT;
 
                 WHEN INC_TMP_COUNT =>
@@ -162,23 +167,23 @@ BEGIN
                     state_next <= ADDR_CALC;
 
                 WHEN ADDR_CALC =>
-                    o_address <= STD_LOGIC_VECTOR(to_unsigned(count + 2, 16));
-                    state_next <= READ_DATA;
+                    o_address <= STD_LOGIC_VECTOR(to_unsigned(1 + count, 16));
+                    state_next <= state_after_count_inc;
 
                 WHEN READ_DATA =>
                     -- read pixel
-                    pixel <= to_integer(unsigned(i_data));
+                    pixel <= i_data;
                     state_next <= CHECK_FOR_MIN_AND_MAX;
 
                 WHEN CHECK_FOR_MIN_AND_MAX =>
                     -- Check for min
-                    IF pixel < min THEN
-                        min <= pixel;
+                    IF to_integer(unsigned(pixel)) < min_pixel_value THEN
+                        min_pixel_value <= to_integer(unsigned(pixel));
                     END IF;
 
                     -- Check for max
-                    IF pixel > max THEN
-                        max <= pixel;
+                    IF to_integer(unsigned(pixel)) > max_pixel_value THEN
+                        max_pixel_value <= to_integer(unsigned(pixel));
                     END IF;
 
                     -- Check if there are remaining pixels
@@ -187,65 +192,80 @@ BEGIN
                     ELSE
                         state_next <= WRITE_START;
                     END IF;
-                    state_next <= READ_DATA_REQ;
 
                 WHEN WRITE_START =>
-                    -- shift_level = max - min
-                    delta_value <= max - min;
+                    -- Initialize counter
                     count <= 0;
+                    -- DELTA_VALUE = MAX_PIXEL_VALUE - MIN_PIXEL_VALUE
+                    delta_value <= max_pixel_value - min_pixel_value;
+                    state_next <= SAVE_SHIFT_LEVEL;
 
+                WHEN SAVE_SHIFT_LEVEL =>
                     -- Define shift_level
                     -- shift_level = (8 – FLOOR(LOG2(delta_value + 1)))
                     IF delta_value = 0 THEN
                         shift_level <= 8;
-                    ELSIF delta_value > 1 OR delta_value < 3 THEN
+                    ELSIF delta_value > 1 AND delta_value < 3 THEN
                         shift_level <= 7;
-                    ELSIF delta_value > 3 OR delta_value < 7 THEN
+                    ELSIF delta_value > 3 AND delta_value < 7 THEN
                         shift_level <= 6;
-                    ELSIF delta_value > 7 OR delta_value < 15 THEN
+                    ELSIF delta_value > 7 AND delta_value < 15 THEN
                         shift_level <= 5;
-                    ELSIF delta_value > 15 OR delta_value < 31 THEN
+                    ELSIF delta_value > 15 AND delta_value < 31 THEN
                         shift_level <= 4;
-                    ELSIF delta_value > 31 OR delta_value < 63 THEN
+                    ELSIF delta_value > 31 AND delta_value < 63 THEN
                         shift_level <= 3;
-                    ELSIF delta_value > 63 OR delta_value < 127 THEN
+                    ELSIF delta_value > 63 AND delta_value < 127 THEN
                         shift_level <= 2;
                     ELSE
                         shift_level <= 1;
                     END IF;
-
                     state_next <= WRITE_DATA_READ;
 
                 WHEN WRITE_DATA_READ =>
                     -- Request to read data
                     o_we <= '0';
                     o_en <= '1';
-                    o_address <= STD_LOGIC_VECTOR(to_unsigned(count, 16));
-
-                    state_next <= WRITE_DATA_REQ;
+                    -- Call count increment
+                    state_after_count_inc <= WRITE_DATA_REQ;
+                    state_next <= INC_TMP_COUNT;
 
                 WHEN WRITE_DATA_REQ =>
                     -- Read pixel requested in WRITE_DATA_READ
-                    byte <= i_data;
-
-                    -- Set we and enable to 1 to allow writing on memory
+                    pixel <= i_data;
+                    -- Set writing access
                     o_we <= '1';
                     o_en <= '1';
-                    o_address <= STD_LOGIC_VECTOR(to_unsigned(2 + dim + count, 16));
-                    count <= count + 1;
+                    state_next <= EQUALIZE_PIXEL_SUBTRACT;
 
+                WHEN EQUALIZE_PIXEL_SUBTRACT =>
+                    -- TEMP_PIXEL = (CURRENT_PIXEL_VALUE - MIN_PIXEL_VALUE) << SHIFT_LEVEL
+                    tmp_pixel <= EMPTY_VECTOR & (pixel - STD_LOGIC_VECTOR(to_unsigned(min_pixel_value, 8)));
+                    state_next <= EQUALIZE_PIXEL_SHIFT;
+
+                WHEN EQUALIZE_PIXEL_SHIFT =>
+                    unsigned_tmp_pixel <= shift_left(unsigned(tmp_pixel), shift_level);
                     state_next <= WRITE_DATA;
 
                 WHEN WRITE_DATA =>
+                    ASSERT false REPORT
+                    "pixel = " & INTEGER'image(to_integer(unsigned(pixel)))
+                    & ", min_pixel_value = " & INTEGER'image(min_pixel_value)
+                    & ", max_pixel_value = " & INTEGER'image(max_pixel_value)
+                    & ", shift_level = " & INTEGER'image(shift_level)
+                    & ", tmp_pixel = " & INTEGER'image(to_integer(unsigned(tmp_pixel)))
+                    & ", unsigned_tmp_pixel = " & INTEGER'image(to_integer(unsigned_tmp_pixel));
+
                     -- Check for overflow
-                    -- TODO: da sistemare
-                    IF byte(7) = '1' OR byte(6) = '1' THEN
-                        pixel <= 255;
+                    IF to_integer(unsigned_tmp_pixel) > 255 THEN
+                        new_pixel <= 255;
                     ELSE
-                        pixel <= to_integer(unsigned(byte & "00"));
+                        new_pixel <= to_integer(unsigned_tmp_pixel);
                     END IF;
 
-                    o_data <= STD_LOGIC_VECTOR(to_unsigned(pixel, 8));
+                    -- Write new equalized pixel
+                    o_data <= STD_LOGIC_VECTOR(to_unsigned(new_pixel, 8));
+                    o_address <= STD_LOGIC_VECTOR(to_unsigned(1 + dim + count, 16));
 
                     -- Check if there are remaining pixels
                     IF count < dim THEN
@@ -257,13 +277,13 @@ BEGIN
                 WHEN WRITE_END =>
                     o_en <= '0';
                     o_we <= '0';
-
                     state_next <= DONE;
 
                 WHEN DONE =>
+                    ASSERT false REPORT "DONE";
                     o_done <= '1';
-
                     state_next <= RESET;
+
             END CASE;
         END IF;
     END PROCESS;

@@ -69,7 +69,7 @@ BEGIN
                 IF mem_we = '1' THEN
                     RAM(conv_integer(mem_address)) <= mem_i_data;
                     mem_o_data <= mem_i_data AFTER 1 ns;
-                    ELSE
+                ELSE
                     mem_o_data <= RAM(conv_integer(mem_address)) AFTER 1 ns;
                 END IF;
             END IF;
@@ -94,7 +94,7 @@ BEGIN
         WAIT FOR 100 ns;
 
         -- Immagine originale =  [46, 131, 62, 89]  
-        -- Immagine di output =  [0, 255, 64, 172]  
+        -- Immagine di output =  [0, 255, 64, 172]
 
         ASSERT RAM(6) = STD_LOGIC_VECTOR(to_unsigned(0, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  0  found " & INTEGER'image(to_integer(unsigned(RAM(6)))) SEVERITY failure;
         ASSERT RAM(7) = STD_LOGIC_VECTOR(to_unsigned(255, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  255  found " & INTEGER'image(to_integer(unsigned(RAM(7)))) SEVERITY failure;
