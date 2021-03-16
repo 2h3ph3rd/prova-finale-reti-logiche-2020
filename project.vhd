@@ -248,14 +248,6 @@ BEGIN
                     state_next <= WRITE_DATA;
 
                 WHEN WRITE_DATA =>
-                    ASSERT false REPORT
-                    "pixel = " & INTEGER'image(to_integer(unsigned(pixel)))
-                    & ", min_pixel_value = " & INTEGER'image(min_pixel_value)
-                    & ", max_pixel_value = " & INTEGER'image(max_pixel_value)
-                    & ", shift_level = " & INTEGER'image(shift_level)
-                    & ", tmp_pixel = " & INTEGER'image(to_integer(unsigned(tmp_pixel)))
-                    & ", unsigned_tmp_pixel = " & INTEGER'image(to_integer(unsigned_tmp_pixel));
-
                     -- Check for overflow
                     IF to_integer(unsigned_tmp_pixel) > 255 THEN
                         new_pixel <= 255;
@@ -280,7 +272,6 @@ BEGIN
                     state_next <= DONE;
 
                 WHEN DONE =>
-                    ASSERT false REPORT "DONE";
                     o_done <= '1';
                     state_next <= RESET;
 
