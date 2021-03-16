@@ -1,5 +1,5 @@
-FILE_NAME = top_level
-FLAGS = -fsynopsys
+FILE_NAME = project
+FLAGS = -fsynopsys -fexplicit
 
 all:
 	ghdl -a $(FLAGS) $(FILE_NAME).vhd
