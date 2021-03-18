@@ -181,7 +181,9 @@ BEGIN
 
                 WHEN SAVE_SHIFT_LEVEL =>
                     -- shift_level = (8 – FLOOR(LOG2(delta_value + 1)))
-                    IF delta_value < 3 THEN
+                    IF delta_value = 0 THEN
+                        shift_level <= 8;
+                    ELSIF delta_value < 3 THEN
                         shift_level <= 7;
                     ELSIF delta_value < 7 THEN
                         shift_level <= 6;
