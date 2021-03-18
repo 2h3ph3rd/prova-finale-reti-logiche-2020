@@ -45,6 +45,7 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
         WRITE_DATA_START,
         WRITE_DATA_REQ,
         EQUALIZE_PIXEL,
+        CALCULATE_NEW_PIXEL,
         WRITE_DATA,
         WRITE_END,
         DONE
@@ -213,9 +214,9 @@ BEGIN
                 WHEN EQUALIZE_PIXEL =>
                     -- TEMP_PIXEL = (CURRENT_PIXEL_VALUE - MIN_PIXEL_VALUE) << SHIFT_LEVEL
                     temp_pixel <= shift_left(unsigned(EMPTY_VECTOR & (i_data - min_pixel_value_vector)), shift_level);
-                    state_next <= WRITE_DATA;
+                    state_next <= CALCULATE_NEW_PIXEL;
 
-                WHEN WRITE_DATA =>
+                WHEN CALCULATE_NEW_PIXEL =>
                     -- Check for overflow
                     IF to_integer(temp_pixel) > 255 THEN
                         new_pixel <= 255;
@@ -223,6 +224,9 @@ BEGIN
                         new_pixel <= to_integer(temp_pixel);
                     END IF;
 
+                    state_next <= WRITE_DATA;
+
+                WHEN WRITE_DATA =>
                     -- Write new equalized pixel
                     o_we <= '1';
                     o_en <= '1';
