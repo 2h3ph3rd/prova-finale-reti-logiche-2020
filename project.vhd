@@ -181,22 +181,22 @@ BEGIN
 
                 WHEN SAVE_SHIFT_LEVEL =>
                     -- shift_level = (8 – FLOOR(LOG2(delta_value + 1)))
-                    IF delta_value = 0 THEN
-                        shift_level <= 8;
-                    ELSIF delta_value > 1 AND delta_value < 3 THEN
+                    IF delta_value < 3 THEN
                         shift_level <= 7;
-                    ELSIF delta_value > 3 AND delta_value < 7 THEN
+                    ELSIF delta_value < 7 THEN
                         shift_level <= 6;
-                    ELSIF delta_value > 7 AND delta_value < 15 THEN
+                    ELSIF delta_value < 15 THEN
                         shift_level <= 5;
-                    ELSIF delta_value > 15 AND delta_value < 31 THEN
+                    ELSIF delta_value < 31 THEN
                         shift_level <= 4;
-                    ELSIF delta_value > 31 AND delta_value < 63 THEN
+                    ELSIF delta_value < 63 THEN
                         shift_level <= 3;
-                    ELSIF delta_value > 63 AND delta_value < 127 THEN
+                    ELSIF delta_value < 127 THEN
                         shift_level <= 2;
-                    ELSE
+                    ELSIF delta_value < 255 THEN
                         shift_level <= 1;
+                    ELSE
+                        shift_level <= 0;
                     END IF;
                     state_next <= WRITE_DATA_START;
 
