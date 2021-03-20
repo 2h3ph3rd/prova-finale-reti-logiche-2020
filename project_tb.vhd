@@ -21,18 +21,18 @@ ARCHITECTURE projecttb OF project_tb IS
     SIGNAL RAM : ram_type := (
         0 => STD_LOGIC_VECTOR(to_unsigned(4, 8)),
         1 => STD_LOGIC_VECTOR(to_unsigned(3, 8)),
-        2 => STD_LOGIC_VECTOR(to_unsigned(0, 8)),
-        3 => STD_LOGIC_VECTOR(to_unsigned(23, 8)),
-        4 => STD_LOGIC_VECTOR(to_unsigned(46, 8)),
-        5 => STD_LOGIC_VECTOR(to_unsigned(69, 8)),
-        6 => STD_LOGIC_VECTOR(to_unsigned(92, 8)),
-        7 => STD_LOGIC_VECTOR(to_unsigned(115, 8)),
-        8 => STD_LOGIC_VECTOR(to_unsigned(139, 8)),
-        9 => STD_LOGIC_VECTOR(to_unsigned(162, 8)),
-        10 => STD_LOGIC_VECTOR(to_unsigned(185, 8)),
-        11 => STD_LOGIC_VECTOR(to_unsigned(208, 8)),
-        12 => STD_LOGIC_VECTOR(to_unsigned(231, 8)),
-        13 => STD_LOGIC_VECTOR(to_unsigned(255, 8)),
+        2 => STD_LOGIC_VECTOR(to_unsigned(76, 8)),
+        3 => STD_LOGIC_VECTOR(to_unsigned(131, 8)),
+        4 => STD_LOGIC_VECTOR(to_unsigned(109, 8)),
+        5 => STD_LOGIC_VECTOR(to_unsigned(89, 8)),
+        6 => STD_LOGIC_VECTOR(to_unsigned(46, 8)),
+        7 => STD_LOGIC_VECTOR(to_unsigned(121, 8)),
+        8 => STD_LOGIC_VECTOR(to_unsigned(62, 8)),
+        9 => STD_LOGIC_VECTOR(to_unsigned(59, 8)),
+        10 => STD_LOGIC_VECTOR(to_unsigned(46, 8)),
+        11 => STD_LOGIC_VECTOR(to_unsigned(77, 8)),
+        12 => STD_LOGIC_VECTOR(to_unsigned(68, 8)),
+        13 => STD_LOGIC_VECTOR(to_unsigned(94, 8)),
         OTHERS => (OTHERS => '0')
     );
 
@@ -90,7 +90,7 @@ BEGIN
         WAIT FOR 100 ns;
         tb_rst <= '0';
         WAIT FOR c_CLOCK_PERIOD;
-        WAIT FOR 100 ns;
+        WAIT FOR 500 ns;
         tb_start <= '1';
         WAIT FOR c_CLOCK_PERIOD;
         WAIT UNTIL tb_done = '1';
@@ -99,18 +99,18 @@ BEGIN
         WAIT UNTIL tb_done = '0';
         WAIT FOR 100 ns;
 
-        ASSERT RAM(14) = STD_LOGIC_VECTOR(to_unsigned(0, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  0  found " & INTEGER'image(to_integer(unsigned(RAM(14)))) SEVERITY failure;
-        ASSERT RAM(15) = STD_LOGIC_VECTOR(to_unsigned(23, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  255  found " & INTEGER'image(to_integer(unsigned(RAM(15)))) SEVERITY failure;
-        ASSERT RAM(16) = STD_LOGIC_VECTOR(to_unsigned(46, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  64  found " & INTEGER'image(to_integer(unsigned(RAM(16)))) SEVERITY failure;
-        ASSERT RAM(17) = STD_LOGIC_VECTOR(to_unsigned(69, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(17)))) SEVERITY failure;
-        ASSERT RAM(18) = STD_LOGIC_VECTOR(to_unsigned(92, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  0  found " & INTEGER'image(to_integer(unsigned(RAM(18)))) SEVERITY failure;
-        ASSERT RAM(19) = STD_LOGIC_VECTOR(to_unsigned(115, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  255  found " & INTEGER'image(to_integer(unsigned(RAM(19)))) SEVERITY failure;
-        ASSERT RAM(20) = STD_LOGIC_VECTOR(to_unsigned(139, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  64  found " & INTEGER'image(to_integer(unsigned(RAM(20)))) SEVERITY failure;
-        ASSERT RAM(21) = STD_LOGIC_VECTOR(to_unsigned(162, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(21)))) SEVERITY failure;
-        ASSERT RAM(22) = STD_LOGIC_VECTOR(to_unsigned(185, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(22)))) SEVERITY failure;
-        ASSERT RAM(23) = STD_LOGIC_VECTOR(to_unsigned(208, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(23)))) SEVERITY failure;
-        ASSERT RAM(24) = STD_LOGIC_VECTOR(to_unsigned(231, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(24)))) SEVERITY failure;
-        ASSERT RAM(25) = STD_LOGIC_VECTOR(to_unsigned(255, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(25)))) SEVERITY failure;
+        ASSERT RAM(14) = STD_LOGIC_VECTOR(to_unsigned(120, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  0  found " & INTEGER'image(to_integer(unsigned(RAM(14)))) SEVERITY failure;
+        ASSERT RAM(15) = STD_LOGIC_VECTOR(to_unsigned(255, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  255  found " & INTEGER'image(to_integer(unsigned(RAM(15)))) SEVERITY failure;
+        ASSERT RAM(16) = STD_LOGIC_VECTOR(to_unsigned(252, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  64  found " & INTEGER'image(to_integer(unsigned(RAM(16)))) SEVERITY failure;
+        ASSERT RAM(17) = STD_LOGIC_VECTOR(to_unsigned(172, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(17)))) SEVERITY failure;
+        ASSERT RAM(18) = STD_LOGIC_VECTOR(to_unsigned(0, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  0  found " & INTEGER'image(to_integer(unsigned(RAM(18)))) SEVERITY failure;
+        ASSERT RAM(19) = STD_LOGIC_VECTOR(to_unsigned(255, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  255  found " & INTEGER'image(to_integer(unsigned(RAM(19)))) SEVERITY failure;
+        ASSERT RAM(20) = STD_LOGIC_VECTOR(to_unsigned(64, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  64  found " & INTEGER'image(to_integer(unsigned(RAM(20)))) SEVERITY failure;
+        ASSERT RAM(21) = STD_LOGIC_VECTOR(to_unsigned(52, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(21)))) SEVERITY failure;
+        ASSERT RAM(22) = STD_LOGIC_VECTOR(to_unsigned(0, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(22)))) SEVERITY failure;
+        ASSERT RAM(23) = STD_LOGIC_VECTOR(to_unsigned(124, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(23)))) SEVERITY failure;
+        ASSERT RAM(24) = STD_LOGIC_VECTOR(to_unsigned(88, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(24)))) SEVERITY failure;
+        ASSERT RAM(25) = STD_LOGIC_VECTOR(to_unsigned(192, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(25)))) SEVERITY failure;
 
         ASSERT false REPORT "Simulation Ended! TEST PASSATO" SEVERITY failure;
     END PROCESS test;
