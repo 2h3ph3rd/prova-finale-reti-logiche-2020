@@ -36,7 +36,6 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
         READ_DATA_REQ,
         INC_COUNT,
         UPDATE_COUNT,
-        ADDR_CALC,
         READ_DATA,
         CHECK_FOR_MIN_AND_MAX,
         READ_END,
@@ -51,23 +50,23 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
         DONE
     );
 
-    CONSTANT MAX_POSSIBLE_VALUE : UNSIGNED := "11111111";
-    CONSTANT MIN_POSSIBLE_VALUE : UNSIGNED := "00000000";
+    CONSTANT MAX_POSSIBLE_VALUE : INTEGER := 255;
+    CONSTANT MIN_POSSIBLE_VALUE : INTEGER := 0;
     CONSTANT MAX_DIM : INTEGER := 128;
 
-    SIGNAL min_pixel_value : UNSIGNED(7 DOWNTO 0);
-    SIGNAL max_pixel_value : UNSIGNED(7 DOWNTO 0);
+    SIGNAL min_pixel_value : INTEGER RANGE MIN_POSSIBLE_VALUE TO MAX_POSSIBLE_VALUE;
+    SIGNAL max_pixel_value : INTEGER RANGE MIN_POSSIBLE_VALUE TO MAX_POSSIBLE_VALUE;
 
     SIGNAL num_cols : INTEGER RANGE 0 TO MAX_DIM;
     SIGNAL num_rows : INTEGER RANGE 0 TO MAX_DIM;
     SIGNAL num_pixels : INTEGER RANGE 0 TO MAX_DIM * MAX_DIM;
 
-    SIGNAL pixel : UNSIGNED(7 DOWNTO 0);
-    SIGNAL tmp_pixel : UNSIGNED(15 DOWNTO 0);
-    SIGNAL new_pixel : UNSIGNED(7 DOWNTO 0);
+    SIGNAL pixel_value : INTEGER RANGE MIN_POSSIBLE_VALUE TO MAX_POSSIBLE_VALUE;
+    SIGNAL tmp_pixel_value : UNSIGNED(15 DOWNTO 0);
+    SIGNAL new_pixel_value : INTEGER RANGE MIN_POSSIBLE_VALUE TO MAX_POSSIBLE_VALUE;
 
+    SIGNAL delta_value : INTEGER RANGE MIN_POSSIBLE_VALUE TO MAX_POSSIBLE_VALUE;
     SIGNAL shift_level : INTEGER RANGE 0 TO 8;
-    SIGNAL delta_value : UNSIGNED(7 DOWNTO 0);
 
     SIGNAL count : INTEGER;
     SIGNAL tmp_count : INTEGER;
@@ -143,23 +142,20 @@ BEGIN
 
                 WHEN UPDATE_COUNT =>
                     count <= tmp_count;
-                    state_next <= ADDR_CALC;
-
-                WHEN ADDR_CALC =>
-                    o_address <= STD_LOGIC_VECTOR(to_unsigned(1 + count, 16));
+                    o_address <= STD_LOGIC_VECTOR(to_unsigned(1 + tmp_count, 16));
                     state_next <= state_after_inc_count;
 
                 WHEN READ_DATA =>
-                    pixel <= unsigned(i_data);
+                    pixel_value <= conv_integer(i_data);
                     state_next <= CHECK_FOR_MIN_AND_MAX;
 
                 WHEN CHECK_FOR_MIN_AND_MAX =>
-                    IF pixel < min_pixel_value THEN
-                        min_pixel_value <= pixel;
+                    IF pixel_value < min_pixel_value THEN
+                        min_pixel_value <= pixel_value;
                     END IF;
 
-                    IF pixel > max_pixel_value THEN
-                        max_pixel_value <= pixel;
+                    IF pixel_value > max_pixel_value THEN
+                        max_pixel_value <= pixel_value;
                     END IF;
 
                     -- Check if there are remaining pixels
@@ -213,23 +209,16 @@ BEGIN
                     state_next <= INC_COUNT;
 
                 WHEN EQUALIZE_PIXEL =>
-                    IF unsigned(i_data) = min_pixel_value THEN
-                        new_pixel <= MIN_POSSIBLE_VALUE;
-                        state_next <= WRITE_DATA;
-                    ELSIF unsigned(i_data) = max_pixel_value THEN
-                        new_pixel <= MAX_POSSIBLE_VALUE;
-                        state_next <= WRITE_DATA;
-                    END IF;
                     -- TEMP_PIXEL = (CURRENT_PIXEL_VALUE - MIN_PIXEL_VALUE) << SHIFT_LEVEL
-                    tmp_pixel <= shift_left("00000000" & (unsigned(i_data) - min_pixel_value), shift_level);
+                    tmp_pixel_value <= shift_left("00000000" & (unsigned(i_data) - to_unsigned(min_pixel_value, 8)), shift_level);
                     state_next <= CALCULATE_NEW_PIXEL;
 
                 WHEN CALCULATE_NEW_PIXEL =>
                     -- Check for overflow
-                    IF tmp_pixel > MAX_POSSIBLE_VALUE THEN
-                        new_pixel <= MAX_POSSIBLE_VALUE;
+                    IF tmp_pixel_value > MAX_POSSIBLE_VALUE THEN
+                        new_pixel_value <= MAX_POSSIBLE_VALUE;
                     ELSE
-                        new_pixel <= tmp_pixel(7 DOWNTO 0);
+                        new_pixel_value <= to_integer(tmp_pixel_value(7 DOWNTO 0));
                     END IF;
                     state_next <= WRITE_DATA;
 
@@ -237,7 +226,7 @@ BEGIN
                     -- Write new equalized pixel
                     o_we <= '1';
                     o_en <= '1';
-                    o_data <= STD_LOGIC_VECTOR(new_pixel);
+                    o_data <= STD_LOGIC_VECTOR(to_unsigned(new_pixel_value, 8));
                     o_address <= STD_LOGIC_VECTOR(to_unsigned(1 + num_pixels + count, 16));
 
                     -- Check if there are remaining pixels
