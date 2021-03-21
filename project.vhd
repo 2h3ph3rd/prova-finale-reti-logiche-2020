@@ -38,7 +38,6 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
         CHECK_FOR_MIN_AND_MAX,
         WRITE_START,
         EQUALIZE_PIXEL,
-        CALC_NEW_PIXEL,
         WRITE_NEW_PIXEL,
         DONE
     );
@@ -171,23 +170,20 @@ BEGIN
                 WHEN EQUALIZE_PIXEL =>
                     -- TEMP_PIXEL = (CURRENT_PIXEL_VALUE - MIN_PIXEL_VALUE) << SHIFT_LEVEL
                     tmp_pixel_value <= shift_left("00000000" & (to_unsigned(pixel_value, 8) - to_unsigned(min_pixel_value, 8)), shift_level);
-                    state_next <= CALC_NEW_PIXEL;
-
-                WHEN CALC_NEW_PIXEL =>
-                    -- Check for overflow
-                    IF tmp_pixel_value > MAX_POSSIBLE_VALUE THEN
-                        new_pixel_value <= MAX_POSSIBLE_VALUE;
-                    ELSE
-                        new_pixel_value <= to_integer(tmp_pixel_value(7 DOWNTO 0));
-                    END IF;
                     state_next <= WRITE_NEW_PIXEL;
 
                 WHEN WRITE_NEW_PIXEL =>
                     -- Write new equalized pixel
                     o_we <= '1';
                     o_en <= '1';
-                    o_data <= STD_LOGIC_VECTOR(to_unsigned(new_pixel_value, 8));
                     o_address <= STD_LOGIC_VECTOR(to_unsigned(1 + num_pixels + count, 16));
+
+                    -- Check for overflow
+                    IF tmp_pixel_value > MAX_POSSIBLE_VALUE THEN
+                        o_data <= STD_LOGIC_VECTOR(to_unsigned(MAX_POSSIBLE_VALUE, 8));
+                    ELSE
+                        o_data <= STD_LOGIC_VECTOR(tmp_pixel_value(7 DOWNTO 0));
+                    END IF;
 
                     -- Check if there are remaining pixels
                     IF count < num_pixels THEN
