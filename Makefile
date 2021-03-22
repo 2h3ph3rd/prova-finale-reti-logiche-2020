@@ -8,6 +8,4 @@ all:
 	ghdl -r $(FILE_NAME)_tb
 
 clean:
-	rm *.o
-	rm work-*.cf
-	rm $(FILE_NAME)_tb
+	rm *.o *.aux *.dvi *.log work-*.cf $(FILE_NAME)_tb
