@@ -1,8 +1,7 @@
 ----------------------------------------------------------------------------------
 -- Prova Finale (Progetto di Reti Logiche)
--- Prof. Gianluca Palermo - Anno 2020/2021
+-- Prof. Gianluca Palermo - Anno accademico 2020/2021
 -- 
---
 -- Francesco Pastore (Codice persona 10629332)
 ----------------------------------------------------------------------------------
 
@@ -42,19 +41,15 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
         DONE
     );
 
-    CONSTANT MAX_POSSIBLE_VALUE : INTEGER := 255;
-    CONSTANT MAX_DIM : INTEGER := 128;
+    SIGNAL min_pixel_value : INTEGER RANGE 0 TO 255;
+    SIGNAL max_pixel_value : INTEGER RANGE 0 TO 255;
 
-    SIGNAL min_pixel_value : INTEGER RANGE 0 TO MAX_POSSIBLE_VALUE;
-    SIGNAL max_pixel_value : INTEGER RANGE 0 TO MAX_POSSIBLE_VALUE;
+    SIGNAL num_cols : INTEGER RANGE 0 TO 128;
+    SIGNAL num_rows : INTEGER RANGE 0 TO 128;
+    SIGNAL num_pixels : INTEGER RANGE 0 TO 16384;
 
-    SIGNAL num_cols : INTEGER RANGE 0 TO MAX_DIM;
-    SIGNAL num_rows : INTEGER RANGE 0 TO MAX_DIM;
-    SIGNAL num_pixels : INTEGER RANGE 0 TO MAX_DIM * MAX_DIM;
-
-    SIGNAL pixel_value : INTEGER RANGE 0 TO MAX_POSSIBLE_VALUE;
+    SIGNAL pixel_value : INTEGER RANGE 0 TO 255;
     SIGNAL tmp_pixel_value : UNSIGNED(15 DOWNTO 0);
-    SIGNAL new_pixel_value : INTEGER RANGE 0 TO MAX_POSSIBLE_VALUE;
 
     SIGNAL shift_level : INTEGER RANGE 0 TO 8;
 
@@ -63,7 +58,7 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
 
     SIGNAL state_curr : STATE_TYPE;
     SIGNAL state_next : STATE_TYPE;
-    SIGNAL state_after_read_next_pixel : STATE_TYPE;
+    SIGNAL state_after : STATE_TYPE;
 
 BEGIN
     PROCESS (i_clk)
@@ -110,14 +105,14 @@ BEGIN
 
                 WHEN READ_PIXELS_START =>
                     count <= 0;
-                    min_pixel_value <= MAX_POSSIBLE_VALUE;
+                    min_pixel_value <= 255;
                     max_pixel_value <= 0;
                     num_pixels <= num_rows * num_cols;
                     -- If image is empty there is nothing to do
                     IF num_rows = 0 OR num_cols = 0 THEN
                         state_next <= DONE;
                     ELSE
-                        state_after_read_next_pixel <= CHECK_FOR_MIN_AND_MAX;
+                        state_after <= CHECK_FOR_MIN_AND_MAX;
                         state_next <= READ_NEXT_PIXEL_REQ;
                     END IF;
 
@@ -131,7 +126,7 @@ BEGIN
                 WHEN READ_NEXT_PIXEL =>
                     count <= tmp_count;
                     pixel_value <= conv_integer(i_data);
-                    state_next <= state_after_read_next_pixel;
+                    state_next <= state_after;
 
                 WHEN CHECK_FOR_MIN_AND_MAX =>
                     IF pixel_value < min_pixel_value THEN
@@ -142,7 +137,7 @@ BEGIN
                         max_pixel_value <= pixel_value;
                     END IF;
 
-                    -- Check if there are remaining pixels
+                    -- Check for remaining pixels
                     IF count < num_pixels THEN
                         state_next <= READ_NEXT_PIXEL_REQ;
                     ELSE
@@ -162,30 +157,29 @@ BEGIN
                         WHEN 31 TO 62 => shift_level <= 3;
                         WHEN 63 TO 126 => shift_level <= 2;
                         WHEN 127 TO 254 => shift_level <= 1;
-                        WHEN OTHERS => shift_level <= 0;
+                        WHEN 255 => shift_level <= 0;
                     END CASE;
-                    state_after_read_next_pixel <= EQUALIZE_PIXEL;
+                    state_after <= EQUALIZE_PIXEL;
                     state_next <= READ_NEXT_PIXEL_REQ;
 
                 WHEN EQUALIZE_PIXEL =>
-                    -- TEMP_PIXEL = (CURRENT_PIXEL_VALUE - MIN_PIXEL_VALUE) << SHIFT_LEVEL
+                    -- tmp_pixel_value = (current_pixel_value - min_pixel_value) << shift_level
                     tmp_pixel_value <= shift_left("00000000" & (to_unsigned(pixel_value, 8) - to_unsigned(min_pixel_value, 8)), shift_level);
                     state_next <= WRITE_NEW_PIXEL;
 
                 WHEN WRITE_NEW_PIXEL =>
-                    -- Write new equalized pixel
                     o_we <= '1';
                     o_en <= '1';
                     o_address <= STD_LOGIC_VECTOR(to_unsigned(1 + num_pixels + count, 16));
 
                     -- Check for overflow
-                    IF tmp_pixel_value > MAX_POSSIBLE_VALUE THEN
-                        o_data <= STD_LOGIC_VECTOR(to_unsigned(MAX_POSSIBLE_VALUE, 8));
+                    IF tmp_pixel_value > 255 THEN
+                        o_data <= STD_LOGIC_VECTOR(to_unsigned(255, 8));
                     ELSE
                         o_data <= STD_LOGIC_VECTOR(tmp_pixel_value(7 DOWNTO 0));
                     END IF;
 
-                    -- Check if there are remaining pixels
+                    -- Check for remaining pixels
                     IF count < num_pixels THEN
                         state_next <= READ_NEXT_PIXEL_REQ;
                     ELSE
@@ -199,4 +193,4 @@ BEGIN
             END CASE;
         END IF;
     END PROCESS;
-END Behavioral;
+END;
