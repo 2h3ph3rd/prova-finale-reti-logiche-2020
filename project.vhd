@@ -105,9 +105,9 @@ BEGIN
                     count <= 0;
                     min_pixel_value <= 255;
                     max_pixel_value <= 0;
-                    num_pixels <= conv_integer(num_rows) * conv_integer(num_cols);
+                    num_pixels <= conv_integer(num_cols) * conv_integer(num_rows);
                     -- If image is empty there is nothing to do
-                    IF num_pixels = 0 THEN
+                    IF num_cols = "00000000" OR num_rows = "000000000" THEN
                         state_next <= DONE;
                     ELSE
                         state_after <= CHECK_FOR_MIN_AND_MAX;
@@ -182,7 +182,7 @@ BEGIN
                     o_address <= STD_LOGIC_VECTOR(to_unsigned(1 + num_pixels + count, 16));
 
                     -- Check for overflow
-                    IF pixel_value > overflow_threshold THEN
+                    IF pixel_value - min_pixel_value > overflow_threshold THEN
                         o_data <= "11111111";
                     ELSE
                         o_data <= STD_LOGIC_VECTOR(shift_left(to_unsigned(pixel_value - min_pixel_value, 8), shift_level));
