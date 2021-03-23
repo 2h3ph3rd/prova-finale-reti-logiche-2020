@@ -107,7 +107,7 @@ BEGIN
                     max_pixel_value <= 0;
                     num_pixels <= conv_integer(num_rows) * conv_integer(num_cols);
                     -- If image is empty there is nothing to do
-                    IF num_rows = 0 OR num_cols = 0 THEN
+                    IF num_pixels = 0 THEN
                         state_next <= DONE;
                     ELSE
                         state_after <= CHECK_FOR_MIN_AND_MAX;
