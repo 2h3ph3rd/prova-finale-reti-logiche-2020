@@ -131,9 +131,7 @@ BEGIN
                 WHEN CHECK_FOR_MIN_AND_MAX =>
                     IF pixel_value < min_pixel_value THEN
                         min_pixel_value <= pixel_value;
-                    END IF;
-
-                    IF pixel_value > max_pixel_value THEN
+                    ELSIF pixel_value > max_pixel_value THEN
                         max_pixel_value <= pixel_value;
                     END IF;
 
