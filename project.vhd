@@ -155,7 +155,7 @@ BEGIN
                         WHEN 31 TO 62 => shift_level <= 3;
                         WHEN 63 TO 126 => shift_level <= 2;
                         WHEN 127 TO 254 => shift_level <= 1;
-                        WHEN 255 => shift_level <= 0;
+                        WHEN OTHERS => shift_level <= 0;
                     END CASE;
                     state_after <= EQUALIZE_PIXEL;
                     state_next <= READ_NEXT_PIXEL_REQ;
