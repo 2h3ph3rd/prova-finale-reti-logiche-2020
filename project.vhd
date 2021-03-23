@@ -36,23 +36,27 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
         READ_NEXT_PIXEL,
         CHECK_FOR_MIN_AND_MAX,
         WRITE_START,
+        EQUALIZE_PIXEL,
         WRITE_NEW_PIXEL,
         DONE
     );
 
-    SIGNAL min_pixel_value : INTEGER RANGE 0 TO 255;
-    SIGNAL max_pixel_value : INTEGER RANGE 0 TO 255;
+    CONSTANT EMPTY_BYTE : STD_LOGIC_VECTOR(7 DOWNTO 0) := "00000000";
+
+    SIGNAL min_pixel_value : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL max_pixel_value : STD_LOGIC_VECTOR(7 DOWNTO 0);
 
     SIGNAL num_cols : STD_LOGIC_VECTOR(7 DOWNTO 0);
-    SIGNAL num_rows : STD_LOGIC_VECTOR(7 DOWNTO 0);
-    SIGNAL num_pixels : INTEGER RANGE 0 TO 16384;
+    SIGNAL num_pixels : STD_LOGIC_VECTOR(15 DOWNTO 0);
 
-    SIGNAL pixel_value : INTEGER RANGE 0 TO 255;
-    SIGNAL shift_level : INTEGER RANGE 0 TO 8;
-    SIGNAL overflow_threshold : INTEGER RANGE 0 TO 255;
+    SIGNAL count : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL tmp_count : STD_LOGIC_VECTOR(15 DOWNTO 0);
 
-    SIGNAL count : INTEGER;
-    SIGNAL tmp_count : INTEGER;
+    SIGNAL pixel_value : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL new_pixel_value : STD_LOGIC_VECTOR(7 DOWNTO 0);
+
+    SIGNAL shift_level : STD_LOGIC_VECTOR(2 DOWNTO 0);
+    SIGNAL overflow_threshold : STD_LOGIC_VECTOR(7 DOWNTO 0);
 
     SIGNAL state_curr : STATE_TYPE;
     SIGNAL state_next : STATE_TYPE;
@@ -98,16 +102,15 @@ BEGIN
                     state_next <= READ_NUM_ROWS;
 
                 WHEN READ_NUM_ROWS =>
-                    num_rows <= i_data;
+                    num_pixels <= num_cols * i_data;
                     state_next <= READ_PIXELS_START;
 
                 WHEN READ_PIXELS_START =>
-                    count <= 0;
-                    min_pixel_value <= 255;
-                    max_pixel_value <= 0;
-                    num_pixels <= conv_integer(num_cols) * conv_integer(num_rows);
+                    count <= "0000000000000000";
+                    min_pixel_value <= "11111111";
+                    max_pixel_value <= "00000000";
                     -- If image is empty there is nothing to do
-                    IF num_cols = "00000000" OR num_rows = "000000000" THEN
+                    IF num_pixels = "00000000000000000" THEN
                         state_next <= DONE;
                     ELSE
                         state_after <= CHECK_FOR_MIN_AND_MAX;
@@ -118,12 +121,12 @@ BEGIN
                     tmp_count <= count + 1;
                     o_en <= '1';
                     o_we <= '0';
-                    o_address <= STD_LOGIC_VECTOR(to_unsigned(2 + count, 16));
+                    o_address <= 2 + count;
                     state_next <= READ_NEXT_PIXEL;
 
                 WHEN READ_NEXT_PIXEL =>
                     count <= tmp_count;
-                    pixel_value <= conv_integer(i_data);
+                    pixel_value <= i_data;
                     state_next <= state_after;
 
                 WHEN CHECK_FOR_MIN_AND_MAX =>
@@ -141,51 +144,69 @@ BEGIN
                     END IF;
 
                 WHEN WRITE_START =>
-                    count <= 0;
+                    count <= "0000000000000000";
                     -- delta_value = max_pixel_value - min_pixel_value
-                    -- shift_level = (8 – FLOOR(LOG2(delta_value + 1)))
-                    CASE max_pixel_value - min_pixel_value IS
-                        WHEN 0 =>
-                            shift_level <= 8;
-                            overflow_threshold <= 0;
+                    -- shift_level = (8 - FLOOR(LOG2(delta_value + 1)))
+                    CASE to_integer(unsigned(max_pixel_value - min_pixel_value)) IS
                         WHEN 1 TO 2 =>
-                            shift_level <= 7;
-                            overflow_threshold <= 1;
+                            shift_level <= "111";
+                            overflow_threshold <= "00000001";
                         WHEN 3 TO 6 =>
-                            shift_level <= 6;
-                            overflow_threshold <= 3;
+                            shift_level <= "110";
+                            overflow_threshold <= "00000011";
                         WHEN 7 TO 14 =>
-                            shift_level <= 5;
-                            overflow_threshold <= 7;
+                            shift_level <= "101";
+                            overflow_threshold <= "00000111";
                         WHEN 15 TO 30 =>
-                            shift_level <= 4;
-                            overflow_threshold <= 15;
+                            shift_level <= "100";
+                            overflow_threshold <= "00001111";
                         WHEN 31 TO 62 =>
-                            shift_level <= 3;
-                            overflow_threshold <= 31;
+                            shift_level <= "011";
+                            overflow_threshold <= "00011111";
                         WHEN 63 TO 126 =>
-                            shift_level <= 2;
-                            overflow_threshold <= 63;
+                            shift_level <= "010";
+                            overflow_threshold <= "00111111";
                         WHEN 127 TO 254 =>
-                            shift_level <= 1;
-                            overflow_threshold <= 127;
+                            shift_level <= "001";
+                            overflow_threshold <= "01111111";
                         WHEN OTHERS =>
-                            shift_level <= 0;
-                            overflow_threshold <= 255;
+                            shift_level <= "000";
+                            overflow_threshold <= "11111111";
                     END CASE;
-                    state_after <= WRITE_NEW_PIXEL;
+                    state_after <= EQUALIZE_PIXEL;
                     state_next <= READ_NEXT_PIXEL_REQ;
+
+                WHEN EQUALIZE_PIXEL =>
+                    new_pixel_value <= pixel_value - min_pixel_value;
+                    state_next <= WRITE_NEW_PIXEL;
 
                 WHEN WRITE_NEW_PIXEL =>
                     o_we <= '1';
                     o_en <= '1';
-                    o_address <= STD_LOGIC_VECTOR(to_unsigned(1 + num_pixels + count, 16));
+                    o_address <= 1 + num_pixels + count;
 
                     -- Check for overflow
-                    IF pixel_value - min_pixel_value > overflow_threshold THEN
+                    IF new_pixel_value > overflow_threshold THEN
                         o_data <= "11111111";
                     ELSE
-                        o_data <= STD_LOGIC_VECTOR(shift_left(to_unsigned(pixel_value - min_pixel_value, 8), shift_level));
+                        CASE shift_level IS
+                            WHEN "001" =>
+                                o_data <= new_pixel_value(6 DOWNTO 0) & "0";
+                            WHEN "010" =>
+                                o_data <= new_pixel_value(5 DOWNTO 0) & "00";
+                            WHEN "011" =>
+                                o_data <= new_pixel_value(4 DOWNTO 0) & "000";
+                            WHEN "100" =>
+                                o_data <= new_pixel_value(3 DOWNTO 0) & "0000";
+                            WHEN "101" =>
+                                o_data <= new_pixel_value(2 DOWNTO 0) & "00000";
+                            WHEN "110" =>
+                                o_data <= new_pixel_value(1 DOWNTO 0) & "000000";
+                            WHEN "111" =>
+                                o_data <= new_pixel_value(0) & "0000000";
+                            WHEN OTHERS =>
+                                o_data <= pixel_value;
+                        END CASE;
                     END IF;
 
                     -- Check for remaining pixels
