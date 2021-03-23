@@ -36,7 +36,6 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
         READ_NEXT_PIXEL,
         CHECK_FOR_MIN_AND_MAX,
         WRITE_START,
-        EQUALIZE_PIXEL,
         WRITE_NEW_PIXEL,
         DONE
     );
@@ -49,9 +48,8 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
     SIGNAL num_pixels : INTEGER RANGE 0 TO 16384;
 
     SIGNAL pixel_value : INTEGER RANGE 0 TO 255;
-    SIGNAL tmp_pixel_value : UNSIGNED(15 DOWNTO 0);
-
     SIGNAL shift_level : INTEGER RANGE 0 TO 8;
+    SIGNAL overflow_threshold : INTEGER RANGE 0 TO 255;
 
     SIGNAL count : INTEGER;
     SIGNAL tmp_count : INTEGER;
@@ -147,23 +145,36 @@ BEGIN
                     -- delta_value = max_pixel_value - min_pixel_value
                     -- shift_level = (8 – FLOOR(LOG2(delta_value + 1)))
                     CASE max_pixel_value - min_pixel_value IS
-                        WHEN 0 => shift_level <= 8;
-                        WHEN 1 TO 2 => shift_level <= 7;
-                        WHEN 3 TO 6 => shift_level <= 6;
-                        WHEN 7 TO 14 => shift_level <= 5;
-                        WHEN 15 TO 30 => shift_level <= 4;
-                        WHEN 31 TO 62 => shift_level <= 3;
-                        WHEN 63 TO 126 => shift_level <= 2;
-                        WHEN 127 TO 254 => shift_level <= 1;
-                        WHEN OTHERS => shift_level <= 0;
+                        WHEN 0 =>
+                            shift_level <= 8;
+                            overflow_threshold <= 0;
+                        WHEN 1 TO 2 =>
+                            shift_level <= 7;
+                            overflow_threshold <= 1;
+                        WHEN 3 TO 6 =>
+                            shift_level <= 6;
+                            overflow_threshold <= 3;
+                        WHEN 7 TO 14 =>
+                            shift_level <= 5;
+                            overflow_threshold <= 7;
+                        WHEN 15 TO 30 =>
+                            shift_level <= 4;
+                            overflow_threshold <= 15;
+                        WHEN 31 TO 62 =>
+                            shift_level <= 3;
+                            overflow_threshold <= 31;
+                        WHEN 63 TO 126 =>
+                            shift_level <= 2;
+                            overflow_threshold <= 63;
+                        WHEN 127 TO 254 =>
+                            shift_level <= 1;
+                            overflow_threshold <= 127;
+                        WHEN OTHERS =>
+                            shift_level <= 0;
+                            overflow_threshold <= 255;
                     END CASE;
-                    state_after <= EQUALIZE_PIXEL;
+                    state_after <= WRITE_NEW_PIXEL;
                     state_next <= READ_NEXT_PIXEL_REQ;
-
-                WHEN EQUALIZE_PIXEL =>
-                    -- tmp_pixel_value = (current_pixel_value - min_pixel_value) << shift_level
-                    tmp_pixel_value <= shift_left("00000000" & (to_unsigned(pixel_value, 8) - to_unsigned(min_pixel_value, 8)), shift_level);
-                    state_next <= WRITE_NEW_PIXEL;
 
                 WHEN WRITE_NEW_PIXEL =>
                     o_we <= '1';
@@ -171,10 +182,10 @@ BEGIN
                     o_address <= STD_LOGIC_VECTOR(to_unsigned(1 + num_pixels + count, 16));
 
                     -- Check for overflow
-                    IF tmp_pixel_value > 255 THEN
-                        o_data <= STD_LOGIC_VECTOR(to_unsigned(255, 8));
+                    IF pixel_value > overflow_threshold THEN
+                        o_data <= "11111111";
                     ELSE
-                        o_data <= STD_LOGIC_VECTOR(tmp_pixel_value(7 DOWNTO 0));
+                        o_data <= STD_LOGIC_VECTOR(shift_left(to_unsigned(pixel_value - min_pixel_value, 8), shift_level));
                     END IF;
 
                     -- Check for remaining pixels
