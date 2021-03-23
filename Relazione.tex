@@ -11,9 +11,9 @@
 \begin{titlepage}
     \centering
     \vspace*{\fill}
-    \Huge\textbf{Progetto di Reti Logiche}\\
+    \Huge\textbf{Progetto finale di \\ Reti Logiche}\\
     \vspace{5mm} %5mm vertical space
-    \Large Prof. Gianluca Palermo - Anno 2020-21\\
+    \Large Prof. Gianluca Palermo - Anno di corso 2020-21\\
     \vspace{5mm} %5mm vertical space
     \large Francesco Pastore - Codice persona: 10629332\\
     \vspace{100mm}
@@ -25,11 +25,33 @@
 \pagebreak
 
 \section{Introduzione}
+\noindent
+Il metodo di equalizzazione dell’istogramma di una immagine è un metodo pensato per
+ricalibrare il contrasto di una immagine quando l’intervallo dei valori di intensità sono molto
+vicini effettuandone una distribuzione su tutto l’intervallo di intensità, al fine di incrementare il
+contrasto. \\
+Lo scopo del progetto è di implementare una variante semplificata di quest'algoritmo tramite un componente hardware descritto in VHDL.
 
 \section{Implementazione}
 
 \subsection{Segnali utilizzati}
 \subsection{Stati}
+
+\begin{itemize}
+    \item \textbf{RESET:} One entry in the list
+    \item \textbf{READ\_NUM\_COLS\_REQ:} One entry in the list
+    \item \textbf{READ\_NUM\_COLS:} One entry in the list
+    \item \textbf{READ\_NUM\_ROWS\_REQ:} One entry in the list
+    \item \textbf{READ\_NUM\_ROWS:} One entry in the list
+    \item \textbf{READ\_PIXELS\_START:} One entry in the list
+    \item \textbf{READ\_NEXT\_PIXEL\_REQ:} One entry in the list
+    \item \textbf{READ\_NEXT\_PIXEL:} One entry in the list
+    \item \textbf{CHECK\_MIN\_MAX:} One entry in the list
+    \item \textbf{WRITE\_START:} One entry in the list
+    \item \textbf{EQUALIZE\_PIXEL:} One entry in the list
+    \item \textbf{WRITE\_NEW\_PIXEL:} One entry in the list
+    \item \textbf{DONE:} One entry in the list
+\end{itemize}
 
 \section{Test}
 \subsection{Casi di test principali}

@@ -34,7 +34,7 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
         READ_PIXELS_START,
         READ_NEXT_PIXEL_REQ,
         READ_NEXT_PIXEL,
-        CHECK_FOR_MIN_AND_MAX,
+        CHECK_MIN_MAX,
         WRITE_START,
         EQUALIZE_PIXEL,
         WRITE_NEW_PIXEL,
@@ -113,7 +113,7 @@ BEGIN
                     IF num_pixels = "00000000000000000" THEN
                         state_next <= DONE;
                     ELSE
-                        state_after <= CHECK_FOR_MIN_AND_MAX;
+                        state_after <= CHECK_MIN_MAX;
                         state_next <= READ_NEXT_PIXEL_REQ;
                     END IF;
 
@@ -129,7 +129,7 @@ BEGIN
                     pixel_value <= i_data;
                     state_next <= state_after;
 
-                WHEN CHECK_FOR_MIN_AND_MAX =>
+                WHEN CHECK_MIN_MAX =>
                     IF pixel_value < min_pixel_value THEN
                         min_pixel_value <= pixel_value;
                     ELSIF pixel_value > max_pixel_value THEN
