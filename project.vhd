@@ -44,8 +44,8 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
     SIGNAL min_pixel_value : INTEGER RANGE 0 TO 255;
     SIGNAL max_pixel_value : INTEGER RANGE 0 TO 255;
 
-    SIGNAL num_cols : INTEGER RANGE 0 TO 128;
-    SIGNAL num_rows : INTEGER RANGE 0 TO 128;
+    SIGNAL num_cols : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL num_rows : STD_LOGIC_VECTOR(7 DOWNTO 0);
     SIGNAL num_pixels : INTEGER RANGE 0 TO 16384;
 
     SIGNAL pixel_value : INTEGER RANGE 0 TO 255;
@@ -90,7 +90,7 @@ BEGIN
                     state_next <= READ_NUM_COLS;
 
                 WHEN READ_NUM_COLS =>
-                    num_cols <= conv_integer(i_data);
+                    num_cols <= i_data;
                     state_next <= READ_NUM_ROWS_REQ;
 
                 WHEN READ_NUM_ROWS_REQ =>
@@ -100,14 +100,14 @@ BEGIN
                     state_next <= READ_NUM_ROWS;
 
                 WHEN READ_NUM_ROWS =>
-                    num_rows <= conv_integer(i_data);
+                    num_rows <= i_data;
                     state_next <= READ_PIXELS_START;
 
                 WHEN READ_PIXELS_START =>
                     count <= 0;
                     min_pixel_value <= 255;
                     max_pixel_value <= 0;
-                    num_pixels <= num_rows * num_cols;
+                    num_pixels <= conv_integer(num_rows) * conv_integer(num_cols);
                     -- If image is empty there is nothing to do
                     IF num_rows = 0 OR num_cols = 0 THEN
                         state_next <= DONE;
