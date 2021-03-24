@@ -1,4 +1,11 @@
 {
-    "editor.defaultFormatter": "Vinrobot.vhdl-formatter",
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "[vhd]": {
+        "editor.defaultFormatter": "Vinrobot.vhdl-formatter"
+    },
+    "[latex]": {
+        "editor.wordWrap": "wordWrapColumn",
+        "editor.wordWrapColumn": 80,
+        "editor.defaultFormatter": "James-Yu.latex-workshop"
+    },
 }
