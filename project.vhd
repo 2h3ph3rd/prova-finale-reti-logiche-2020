@@ -92,7 +92,7 @@ BEGIN
                     o_we <= '0';
                     o_address <= "0000000000000000";
                     state_after_wait <= READ_NUM_COLS;
-                    state_next <= mem_wait;
+                    state_next <= MEM_WAIT;
 
                 WHEN READ_NUM_COLS =>
                     num_cols <= i_data;
@@ -103,7 +103,7 @@ BEGIN
                     o_we <= '0';
                     o_address <= "0000000000000001";
                     state_after_wait <= READ_NUM_ROWS;
-                    state_next <= mem_wait;
+                    state_next <= MEM_WAIT;
 
                 WHEN READ_NUM_ROWS =>
                     num_pixels <= conv_integer(i_data * num_cols);
@@ -127,7 +127,7 @@ BEGIN
                     o_we <= '0';
                     o_address <= STD_LOGIC_VECTOR(to_unsigned(2 + count, 16));
                     state_after_wait <= READ_NEXT_PIXEL;
-                    state_next <= mem_wait;
+                    state_next <= MEM_WAIT;
 
                 WHEN READ_NEXT_PIXEL =>
                     count <= tmp_count;
@@ -201,8 +201,7 @@ BEGIN
 
                     -- Check for remaining pixels
                     IF count < num_pixels THEN
-                        state_after_wait <= READ_NEXT_PIXEL_REQ;
-                        state_next <= mem_wait;
+                        state_next <= READ_NEXT_PIXEL_REQ;
                     ELSE
                         state_next <= DONE;
                     END IF;
