@@ -2,6 +2,7 @@
 \usepackage{graphicx}
 \usepackage[utf8]{inputenc}
 \usepackage[italian]{babel}
+\usepackage[T1]{fontenc}
 
 \graphicspath{{./images/}}
 
@@ -26,34 +27,46 @@
 
 \section{Introduzione}
 \noindent
-Il metodo di equalizzazione dell’istogramma di una immagine è un metodo pensato per
-ricalibrare il contrasto di una immagine quando l’intervallo dei valori di intensità sono molto
-vicini effettuandone una distribuzione su tutto l’intervallo di intensità, al fine di incrementare il
-contrasto. \\
+Il metodo di equalizzazione dell’istogramma di una immagine è un metodo pensato per ricalibrare il contrasto di una immagine quando l’intervallo dei valori di intensità sono molto vicini effettuandone una distribuzione su tutto l’intervallo di intensità, al fine di incrementare il contrasto. \\
 Lo scopo del progetto è di implementare una variante semplificata di quest'algoritmo tramite un componente hardware descritto in VHDL.
 
-\section{Implementazione}
+\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
+\section{Architettura}
 
 \subsection{Segnali utilizzati}
+\pagebreak
 \subsection{Stati}
 
-\begin{itemize}
-    \item \textbf{RESET:} One entry in the list
-    \item \textbf{READ\_NUM\_COLS\_REQ:} One entry in the list
-    \item \textbf{READ\_NUM\_COLS:} One entry in the list
-    \item \textbf{READ\_NUM\_ROWS\_REQ:} One entry in the list
-    \item \textbf{READ\_NUM\_ROWS:} One entry in the list
-    \item \textbf{READ\_PIXELS\_START:} One entry in the list
-    \item \textbf{READ\_NEXT\_PIXEL\_REQ:} One entry in the list
-    \item \textbf{READ\_NEXT\_PIXEL:} One entry in the list
-    \item \textbf{CHECK\_MIN\_MAX:} One entry in the list
-    \item \textbf{WRITE\_START:} One entry in the list
-    \item \textbf{EQUALIZE\_PIXEL:} One entry in the list
-    \item \textbf{WRITE\_NEW\_PIXEL:} One entry in the list
-    \item \textbf{DONE:} One entry in the list
-\end{itemize}
+\subsubsection{RESET}
+Lo stato di RESET è lo stato iniziale della macchina ed è l'unico raggiungibile da tutti gli altri. Quando il componente riceve un segnale di i\_rst alto, ferma l'esecuzione e tutto riparte dallo stato di reset.\\
+La macchina esce da questo stato solo con il segnale i\_start alto.
 
-\section{Test}
+\subsubsection{MEM\_WAIT}
+La memoria richiede un ciclo di clock per l'elaborazione di una richiesta di lettura. Questo stato serve quindi come attesa dopo aver settato o\_addr e o\_en.
+
+\subsubsection{READ\_NUM\_COLS\_REQ}
+Nel primo byte della memoria è salvato il numero di colonne dell'immagine. Questo stato si occupa di effettuare la relativa richiesta di lettura. Essendo una lettura è necessario attendere che la memoria elabori la richiesta, per questo motivo lo stato successivo è MEM\_WAIT.
+
+\subsubsection{READ\_NUM\_COLS}
+Dopo aver effettuato la richiesta di lettura nello stato READ\_NUM\_COLS\\\_REQ in questo stato la macchina legge il numero colonne passatogli dalla memoria nel bus i\_data.
+
+\subsubsection{READ\_NUM\_ROWS\_REQ}
+Il secondo elemento in memoria dopo il numero di colonne è il numero di righe. Anche in questo caso è necessario effettuare la richiesta di lettura, aspettare un ciclo di clock nello stato MEM\_WAIT e solo dopo leggere il valore richiesto.
+
+\subsubsection{READ\_NUM\_ROWS}
+Dopo aver effettuato la richiesta di lettura in READ\_NUM\_ROWS\_REQ e aspettato per l'elaborazione da parte della memoria in MEM\_WAIT in questo stato viene letto il numero di righe passato al componente tramite i\_data.
+
+\subsubsection{READ\_PIXELS\_START}
+\subsubsection{READ\_NEXT\_PIXEL\_REQ}
+\subsubsection{READ\_NEXT\_PIXEL}
+\subsubsection{CHECK\_MIN\_MAX}
+\subsubsection{WRITE\_START}
+\subsubsection{EQUALIZE\_PIXEL}
+\subsubsection{WRITE\_NEW\_PIXEL}
+\subsubsection{DONE}
+È lo stato finale in cui giunge la macchina al termine di un'esecuzione completa. Viene settato o\_done a uno e lo stato successivo è quello di RESET, in modo che il componente rimanga in attesa di un'altra possibile esecuzione.
+
+\section{Risultati sperimentali}
 \subsection{Casi di test principali}
 \subsection{Risultati dei test di post sintesi}
 
