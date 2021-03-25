@@ -106,7 +106,7 @@ BEGIN
                     state_next <= MEM_WAIT;
 
                 WHEN READ_NUM_ROWS =>
-                    num_pixels <= conv_integer(i_data * num_cols);
+                    num_pixels <= to_integer(unsigned(i_data * num_cols));
                     state_next <= READ_PIXELS_START;
 
                 WHEN READ_PIXELS_START =>
@@ -131,7 +131,7 @@ BEGIN
 
                 WHEN READ_NEXT_PIXEL =>
                     count <= tmp_count;
-                    pixel_value <= conv_integer(i_data);
+                    pixel_value <= to_integer(unsigned((i_data)));
                     state_next <= state_after_read;
 
                 WHEN CHECK_MIN_MAX =>
