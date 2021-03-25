@@ -1,11 +1,12 @@
 {
     "editor.formatOnSave": true,
+    "latex-workshop.latex.outDir": "report",
     "[vhd]": {
         "editor.defaultFormatter": "Vinrobot.vhdl-formatter"
     },
     "[latex]": {
         "editor.wordWrap": "wordWrapColumn",
         "editor.wordWrapColumn": 80,
-        "editor.defaultFormatter": "James-Yu.latex-workshop"
+        "editor.defaultFormatter": "James-Yu.latex-workshop",
     },
 }

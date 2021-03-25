@@ -1,6 +1,8 @@
 FILE_NAME = project
 FLAGS = -fsynopsys -fexplicit
 
+.PHONY: report
+
 all:
 	ghdl -a $(FLAGS) $(FILE_NAME).vhd
 	ghdl -a $(FLAGS) $(FILE_NAME)_tb.vhd
@@ -9,3 +11,6 @@ all:
 
 clean:
 	rm *.o *.aux *.dvi *.log work-*.cf $(FILE_NAME)_tb
+
+report:
+	pdflatex -output-directory=report Relazione.tex
