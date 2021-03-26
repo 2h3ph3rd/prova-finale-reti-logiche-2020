@@ -33,3 +33,6 @@ work-*.cf
 *.ilg
 *.ind
 *.dvi
+*.bbl
+*.bcf
+*.blg
