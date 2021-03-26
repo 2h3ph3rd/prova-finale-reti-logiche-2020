@@ -1,5 +1,6 @@
 {
     "editor.formatOnSave": true,
+    "latex-workshop.latex.autoBuild.run": "onSave",
     "latex-workshop.latex.outDir": "report",
     "[vhd]": {
         "editor.defaultFormatter": "Vinrobot.vhdl-formatter"
