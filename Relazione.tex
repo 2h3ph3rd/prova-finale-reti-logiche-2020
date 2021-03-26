@@ -20,7 +20,6 @@
 \begin{titlepage}
     \centering
     \vspace*{\fill}
-    \thispagestyle{empty}
     \Huge\textbf{Progetto finale di \\ Reti Logiche}\\
     \vspace{5mm} %5mm vertical space
     \Large Prof. Gianluca Palermo - Anno di corso 2020-21\\
@@ -31,6 +30,7 @@
     \vspace*{\fill}
 \end{titlepage}
 
+\thispagestyle{empty}
 \tableofcontents
 \pagebreak
 
@@ -39,19 +39,19 @@
 Il metodo di equalizzazione dell’istogramma di una immagine è un metodo pensato per ricalibrare il contrasto di una immagine quando l’intervallo dei valori di intensità sono molto vicini effettuandone una distribuzione su tutto l’intervallo di intensità, al fine di incrementare il contrasto. \\
 Lo scopo del progetto è di implementare una variante semplificata di quest'algoritmo tramite un componente hardware descritto in VHDL.
 
+
+\pagebreak
 \addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
 \section{Architettura}
 
 \subsection{Segnali utilizzati}
 
-\subsection{Diagramma degli stati}
-
 \pagebreak
 \subsection{Descrizione degli stati}
+Il componente è stato definito con una macchina a stati in particolare possiede 14 stati descritti qui di seguito.
 
 \subsubsection{RESET}
-Lo stato di RESET è lo stato iniziale della macchina ed è l'unico raggiungibile da tutti gli altri. Quando il componente riceve un segnale di i\_rst alto, ferma l'esecuzione e tutto riparte dallo stato di reset.\\
-La macchina esce da questo stato solo con il segnale i\_start alto.
+Lo stato di RESET è lo stato iniziale della macchina ed è l'unico raggiungibile da tutti gli altri. Quando il componente riceve un segnale di i\_rst alto, ferma l'esecuzione e tutto riparte dallo stato di reset. La macchina esce da questo stato solo con il segnale i\_start alto.
 
 \subsubsection{MEM\_WAIT}
 La memoria richiede un ciclo di clock per l'elaborazione di una richiesta di lettura. Questo stato serve quindi come attesa dopo aver settato o\_addr e o\_en.
@@ -78,7 +78,7 @@ Dopo aver calcolato il numero di pixel contenuti nell'immagine grazie al numero 
 Dopo aver effettuato la richiesta di lettura e aspettato l'elaborazione da parte della memoria, in questo stato la macchina legge il pixel passatole nell'ingresso i\_data. Viene inoltre salvato il valore del contatore, che era stato incrementato nello stato precedente sfruttando un segnale d'appoggio.
 
 \subsubsection{CHECK\_MIN\_MAX}
-La prima scansione serve per trovare i valori minimi e massimi dei pixel dell'immagine, in modo da poter poi effettuare l'equalizzazione.
+La prima scansione serve per trovare i valori minimi e massimi dei pixel dell'immagine, in modo da poter poi effettuare l'equalizzazione. In questo stato viene quindi controllato ciascun pixel dopo la prima lettura e confrontato con i valori di massimo e minimo temporanei.
 
 \subsubsection{WRITE\_START}
 Una volta effettuata la prima scansione e aver trovato quindi il massimo e il minimo, è possibile calcolare il delta\_value dato dalla differenza dei due valori. Tramite uno switch e le relative soglie, viene determinato lo shift\_level e il relativo overflow\_threshold. Prima di poter effettuare la nuova scansione in questo stato è necessario inizializzare nuovamente il contatore.
@@ -87,13 +87,19 @@ Una volta effettuata la prima scansione e aver trovato quindi il massimo e il mi
 Per evitare di effettuare più volte lo stesso calcolo, in questo stato viene salvata nel segnale new\_pixel\_value la differenza tra il valore di ciascun pixel e il relativo minimo dopo ogni lettura.
 
 \subsubsection{WRITE\_NEW\_PIXEL}
-È in questo stato che la macchina scrive il valore del pixel equalizzato facendo attenzione ad effettuare lo shift solo quando non c'è overflow.
+È in questo stato che la macchina scrive il valore del pixel equalizzato facendo attenzione ad effettuare lo shift solo quando non c'è overflow. A questo fine viene sfruttato il valore di soglia definito nello stato WRITE\_START sulla base del delta\_value.
 
 \subsubsection{DONE}
-È lo stato finale in cui giunge la macchina al termine di un'esecuzione completa. Viene settato o\_done a uno e lo stato successivo è quello di RESET, in modo che il componente rimanga in attesa di un'altra possibile esecuzione.
+È lo stato finale in cui giunge la macchina al termine di un'esecuzione completa. Viene settato o\_done alto e lo stato successivo è quello di RESET, in modo che il componente rimanga pronto per un'altra possibile esecuzione.
 
+\subsection{Diagramma degli stati}
+
+\pagebreak
 \section{Risultati sperimentali}
-\subsection{Casi di test principali}
-\subsection{Risultati dei test di post sintesi}
+\subsection{Simulazioni}
+\subsection{Report di sintesi}
+
+\pagebreak
+\section{Conclusioni}
 
 \end{document}
