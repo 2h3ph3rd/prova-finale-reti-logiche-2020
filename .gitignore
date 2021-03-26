@@ -36,3 +36,4 @@ work-*.cf
 *.bbl
 *.bcf
 *.blg
+*.run.xml
