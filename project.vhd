@@ -28,13 +28,13 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
     TYPE state_next_TYPE IS (
         RESET,
         MEM_WAIT,
-        READ_NUM_COLS_REQ,
-        READ_NUM_COLS,
-        READ_NUM_ROWS_REQ,
-        READ_NUM_ROWS,
+        READ_COLS_REQ,
+        READ_COLS,
+        READ_ROWS_REQ,
+        READ_ROWS,
         READ_PIXELS_START,
-        READ_NEXT_PIXEL_REQ,
-        READ_NEXT_PIXEL,
+        READ_PIXEL_REQ,
+        READ_PIXEL,
         CHECK_MIN_MAX,
         WRITE_START,
         EQUALIZE_PIXEL,
@@ -77,7 +77,7 @@ BEGIN
                     o_we <= '0';
                     o_done <= '0';
                     IF i_start = '1' THEN
-                        state_next <= READ_NUM_COLS_REQ;
+                        state_next <= READ_COLS_REQ;
                     ELSE
                         state_next <= RESET;
                     END IF;
@@ -87,25 +87,25 @@ BEGIN
                     o_en <= '0';
                     state_next <= state_after_wait;
 
-                WHEN READ_NUM_COLS_REQ =>
+                WHEN READ_COLS_REQ =>
                     o_en <= '1';
                     o_we <= '0';
                     o_address <= "0000000000000000";
-                    state_after_wait <= READ_NUM_COLS;
+                    state_after_wait <= READ_COLS;
                     state_next <= MEM_WAIT;
 
-                WHEN READ_NUM_COLS =>
+                WHEN READ_COLS =>
                     num_cols <= i_data;
-                    state_next <= READ_NUM_ROWS_REQ;
+                    state_next <= READ_ROWS_REQ;
 
-                WHEN READ_NUM_ROWS_REQ =>
+                WHEN READ_ROWS_REQ =>
                     o_en <= '1';
                     o_we <= '0';
                     o_address <= "0000000000000001";
-                    state_after_wait <= READ_NUM_ROWS;
+                    state_after_wait <= READ_ROWS;
                     state_next <= MEM_WAIT;
 
-                WHEN READ_NUM_ROWS =>
+                WHEN READ_ROWS =>
                     num_pixels <= to_integer(unsigned(i_data * num_cols));
                     state_next <= READ_PIXELS_START;
 
@@ -118,18 +118,18 @@ BEGIN
                         state_next <= DONE;
                     ELSE
                         state_after_read <= CHECK_MIN_MAX;
-                        state_next <= READ_NEXT_PIXEL_REQ;
+                        state_next <= READ_PIXEL_REQ;
                     END IF;
 
-                WHEN READ_NEXT_PIXEL_REQ =>
+                WHEN READ_PIXEL_REQ =>
                     tmp_count <= count + 1;
                     o_en <= '1';
                     o_we <= '0';
                     o_address <= STD_LOGIC_VECTOR(to_unsigned(2 + count, 16));
-                    state_after_wait <= READ_NEXT_PIXEL;
+                    state_after_wait <= READ_PIXEL;
                     state_next <= MEM_WAIT;
 
-                WHEN READ_NEXT_PIXEL =>
+                WHEN READ_PIXEL =>
                     count <= tmp_count;
                     pixel_value <= to_integer(unsigned((i_data)));
                     state_next <= state_after_read;
@@ -143,7 +143,7 @@ BEGIN
 
                     -- Check for remaining pixels
                     IF count < num_pixels THEN
-                        state_next <= READ_NEXT_PIXEL_REQ;
+                        state_next <= READ_PIXEL_REQ;
                     ELSE
                         state_next <= WRITE_START;
                     END IF;
@@ -179,7 +179,7 @@ BEGIN
                             overflow_threshold <= 255;
                     END CASE;
                     state_after_read <= EQUALIZE_PIXEL;
-                    state_next <= READ_NEXT_PIXEL_REQ;
+                    state_next <= READ_PIXEL_REQ;
 
                 WHEN EQUALIZE_PIXEL =>
                     -- TEMP_PIXEL = CURRENT_PIXEL_VALUE - MIN_PIXEL_VALUE 
@@ -201,7 +201,7 @@ BEGIN
 
                     -- Check for remaining pixels
                     IF count < num_pixels THEN
-                        state_next <= READ_NEXT_PIXEL_REQ;
+                        state_next <= READ_PIXEL_REQ;
                     ELSE
                         state_next <= DONE;
                     END IF;

@@ -53,29 +53,29 @@ Il componente è stato definito con una macchina a stati in particolare possiede
 \subsubsection{RESET}
 Lo stato di RESET è lo stato iniziale della macchina ed è l'unico raggiungibile da tutti gli altri. Quando il componente riceve un segnale di i\_rst alto, ferma l'esecuzione e tutto riparte dallo stato di reset. La macchina esce da questo stato solo con il segnale i\_start alto.
 
-\subsubsection{MEM\_WAIT}
-La memoria richiede un ciclo di clock per l'elaborazione di una richiesta di lettura. Questo stato serve quindi come attesa dopo aver settato o\_addr e o\_en.
-
-\subsubsection{READ\_NUM\_COLS\_REQ}
+\subsubsection{READ\_COLS\_REQ}
 Nel primo byte della memoria è salvato il numero di colonne dell'immagine. Questo stato si occupa di effettuare la relativa richiesta di lettura. Essendo una lettura è necessario attendere che la memoria elabori la richiesta, per questo motivo lo stato successivo è MEM\_WAIT.
 
-\subsubsection{READ\_NUM\_COLS}
-Dopo aver effettuato la richiesta di lettura nello stato READ\_NUM\_COLS\\\_REQ in questo stato la macchina legge il numero colonne passatogli dalla memoria nel bus i\_data.
+\subsubsection{READ\_COLS}
+Dopo aver effettuato la richiesta di lettura nello stato READ\_COLS\_REQ in questo stato la macchina legge il numero colonne passatogli dalla memoria nel bus i\_data.
 
-\subsubsection{READ\_NUM\_ROWS\_REQ}
+\subsubsection{READ\_ROWS\_REQ}
 Il secondo elemento in memoria dopo il numero di colonne è il numero di righe. Anche in questo caso è necessario effettuare la richiesta di lettura, aspettare un ciclo di clock nello stato MEM\_WAIT e solo dopo leggere il valore richiesto.
 
-\subsubsection{READ\_NUM\_ROWS}
-Dopo aver effettuato la richiesta di lettura in READ\_NUM\_ROWS\_REQ e aspettato per l'elaborazione da parte della memoria in MEM\_WAIT in questo stato viene letto il numero di righe passato al componente tramite i\_data.
+\subsubsection{READ\_ROWS}
+Dopo aver effettuato la richiesta di lettura in READ\_ROWS\_REQ e aspettato per l'elaborazione da parte della memoria in MEM\_WAIT in questo stato viene letto il numero di righe passato al componente tramite i\_data.
 
 \subsubsection{READ\_PIXELS\_START}
 In questo stato viene inizializzato il contatore  e i segnali di minimo e massimo prima di effettuare la prima scansione dell'immagine. Il minimo viene settato a 255 che corrisponde al più alto valore possibile, il massimo invece a zero che rappresenta rispettivamente quello più basso. Viene controllato inoltre che non sia stata data un'immagine vuota, altrimenti si passa direttamente allo stato di DONE.
 
-\subsubsection{READ\_NEXT\_PIXEL\_REQ}
+\subsubsection{READ\_PIXEL\_REQ}
 Dopo aver calcolato il numero di pixel contenuti nell'immagine grazie al numero di colonne e di righe, è possibile leggerli scansionandola dall'inizio alla fine. In questo stato viene quindi settato l'indirizzo per la lettura del prossimo che verrà poi letto nello stato READ\_NEXT\_PIXEL. Il contatore necessario per la lettura viene incrementato in questo stato sfruttando un segnale temporaneo d'appoggio.
 
-\subsubsection{READ\_NEXT\_PIXEL}
+\subsubsection{READ\_PIXEL}
 Dopo aver effettuato la richiesta di lettura e aspettato l'elaborazione da parte della memoria, in questo stato la macchina legge il pixel passatole nell'ingresso i\_data. Viene inoltre salvato il valore del contatore, che era stato incrementato nello stato precedente sfruttando un segnale d'appoggio.
+
+\subsubsection{MEM\_WAIT}
+La memoria richiede un ciclo di clock per l'elaborazione di una richiesta di lettura. Questo stato serve quindi come attesa dopo aver settato o\_addr e o\_en.
 
 \subsubsection{CHECK\_MIN\_MAX}
 La prima scansione serve per trovare i valori minimi e massimi dei pixel dell'immagine, in modo da poter poi effettuare l'equalizzazione. In questo stato viene quindi controllato ciascun pixel dopo la prima lettura e confrontato con i valori di massimo e minimo temporanei.
