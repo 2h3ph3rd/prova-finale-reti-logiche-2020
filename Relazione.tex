@@ -4,9 +4,13 @@
 \usepackage[italian]{babel}
 \usepackage[T1]{fontenc}
 \usepackage{fancyhdr}
+\usepackage{biblatex}
+\usepackage{csquotes}
+
+\addbibresource{biblio.bib}
 
 \graphicspath{{./images/}}
-
+\setlength{\parindent}{0pt}
 \makeindex
 
 \pagestyle{fancy}
@@ -33,14 +37,44 @@
 \thispagestyle{empty}
 \tableofcontents
 \pagebreak
-
+\lfoot{111}
 \section{Introduzione}
-\noindent
 Il metodo di equalizzazione dell’istogramma di una immagine è un metodo pensato per ricalibrare il contrasto di una immagine quando l’intervallo dei valori di intensità sono molto vicini effettuandone una distribuzione su tutto l’intervallo di intensità, al fine di incrementare il contrasto. \\
 Lo scopo del progetto è di implementare una variante semplificata di quest'algoritmo tramite un componente hardware descritto in VHDL.
 
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{equalization.png}
+    \centering
+    \caption{Esempio di equalizzazione dell'istogramma di un'immagine}
+    \cite{equalization}
+\end{figure}
+
 \subsection{Specifiche di progetto}
-\subsection{Requisiti di implementazione in VHDL}
+Descrizione della memoria
+
+\subsection{Algoritmo in breve}
+Di seguito una breve descrizione dei punti principali dell'algoritmo da implementare.
+
+\begin{enumerate}
+    \item Lettura del numero di colonne
+    \item Lettura del numero di righe
+    \item Verifica che l'immagine non sia vuota, altrimenti non c'è nulla da fare
+    \item Lettura dei pixel dell'immagine cercando il valore minimo e massimo
+    \item Calcolo del delta\_value e del relativo shift\_level
+    \item Lettura dei pixel dell'immagine e calcolo del relativo new\_pixel
+    \item Verifica che il valore di new\_pixel\_value sia accettabile, altrimenti ridurre a 255 il valore calcolato al punto precedente
+    \item Scrittura in memoria dei nuovi valori dei pixel
+\end{enumerate}
+
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{formulas.png}
+    \centering
+    \caption{Formule dell'algoritmo di equalizzazione fornite nella specifica}
+\end{figure}
+
+\subsection{Note di implementazione}
+Necessità di aspettare \par
+un ciclo di clock per attendere la lettura.
 
 
 \pagebreak
@@ -98,9 +132,9 @@ Per evitare di effettuare più volte lo stesso calcolo, in questo stato viene sa
 \subsection{Diagramma degli stati}
 
 \begin{figure}[h]
-    \includegraphics[scale=0.26]{diagram.png}
+    \includegraphics[width=\textwidth]{diagram.png}
     \centering
-    \caption{Diagramma della macchina a stati, in figura sono specificate le condizioni in caso di più possibili stati successivi}
+    \caption{Diagramma della macchina a stati, in figura sono specificate le condizioni in caso di più possibili stati successivi.}
 \end{figure}
 
 
@@ -111,5 +145,8 @@ Per evitare di effettuare più volte lo stesso calcolo, in questo stato viene sa
 
 \pagebreak
 \section{Conclusioni}
+Possibili ottimizzazioni.
+
+\printbibliography
 
 \end{document}
