@@ -18,6 +18,9 @@
 \lhead{Progetto finale di Reti Logiche}
 \rhead{\leftmark}
 \rfoot{\thepage}
+\lfoot{}
+\renewcommand{\headrulewidth}{1pt}
+\renewcommand{\footrulewidth}{1pt}
 
 \begin{document}
 
@@ -38,42 +41,44 @@
 \tableofcontents
 \pagebreak
 \section{Introduzione}
-Il metodo di equalizzazione dell’istogramma di una immagine è un metodo pensato per ricalibrare il contrasto di una immagine quando l’intervallo dei valori di intensità sono molto vicini effettuandone una distribuzione su tutto l’intervallo di intensità, al fine di incrementare il contrasto. \\
-Lo scopo del progetto è di implementare una variante semplificata di quest'algoritmo tramite un componente hardware descritto in VHDL.
+Il progetto richiede l'implementazione dell'algoritmo di equalizzazione dell'istogramma di un'immagine. Questo metodo di elaborazione permette di aumentare il contrasto di un'immagine andando a distribuire su tutto lo spetttro, in modo bilanciato, i valori di intensità precedentemente vicini. In particolare viene richiesta l'implementazione di una versione semplificata applicata solo ad immagini in scala di grigi (0-255) e grandi al massimo 128x128 pixel.
 
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{equalization.png}
     \centering
-    \caption{Esempio di equalizzazione dell'istogramma di un'immagine \cite{equalization}}
+    \caption{Esempio di equalizzazione dell'istogramma di un'immagine. \cite{equalization}}
 \end{figure}
 
 \subsection{Specifiche di progetto}
-Descrizione della memoria
+L'interfaccia del componente è stata definita nella specifica con i relativi segnali di ingresso e di uscita. Oltre a questo, è stata anche definita la struttura della memoria e l'indirizzamento dei dati. All'indirizzo zero è possibile infatti trovare il numero di colonne, seguito all'indirizzo uno da quello di righe. Dall'indirizzo due iniziano invece i valori dei singoli pixel dell'immagine fino alla posizione NUM\_COLS * NUM\_ROWS + 1. La scrittura dei pixel equalizzati deve avvenire invece dall'indirizzo immediatamente successivo all'ultimo pixel dell'immagine.
 
 \subsection{Algoritmo in breve}
-Di seguito una breve descrizione dei punti principali dell'algoritmo da implementare.
+Di seguito una breve descrizione dei punti principali dell'algoritmo da implementare. Fare riferimento alle formule per il calcolo dei valori considerati.
 
 \begin{enumerate}
-    \item Lettura del numero di colonne
-    \item Lettura del numero di righe
-    \item Verifica che l'immagine non sia vuota, altrimenti non c'è nulla da fare
-    \item Lettura dei pixel dell'immagine cercando il valore minimo e massimo
-    \item Calcolo del delta\_value e del relativo shift\_level
-    \item Lettura dei pixel dell'immagine e calcolo del relativo new\_pixel
-    \item Verifica che il valore di new\_pixel\_value sia accettabile, altrimenti ridurre a 255 il valore calcolato al punto precedente
-    \item Scrittura in memoria dei nuovi valori dei pixel
+    \item Lettura del numero di colonne.
+    \item Lettura del numero di righe.
+    \item Verificare che l'immagine non sia vuota, altrimenti terminare l'esecuzione.
+    \item Lettura dei pixel dell'immagine cercando il valore minimo e massimo.
+    \item Calcolare del delta\_value e del relativo shift\_level.
+    \item Lettura dei pixel dell'immagine e calcolo del temp\_pixel\_value.
+    \item Calcolare il new\_pixel\_value considerando il temp\_pixel\_value trovato al punto precedente.
+    \item Scrittura in memoria dei nuovi valori dei pixel.
 \end{enumerate}
 
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{formulas.png}
     \centering
-    \caption{Formule dell'algoritmo di equalizzazione fornite nella specifica}
+    \caption{Formule dell'algoritmo di equalizzazione fornite nella specifica.}
 \end{figure}
 
 \subsection{Note di implementazione}
-Necessità di aspettare \par
-un ciclo di clock per attendere la lettura.
-
+Rispetto all'algoritmo descritto in precedenza, l'implementazione in VHDL richiede alcune modifiche.
+\begin{itemize}
+    \item La lettura dalla memoria non è istantanea, ma necessita di un ciclo di clock di attesa dopo aver effettuato la richiesta. In particolare nel componente è stato implementato lo stato MEM\_WAIT.
+    \item L'assegnamento di valori ai segnali non è immediato, ma avviene al ciclo di clock successivo. Per questo motivo alcune operazioni vengono eseguite in più stati successivi.
+    \item Non è possibile assegnare ad un segnale esso stesso seppure con modifiche. Questo richiede per il contatore di utilizzare un altro segnale come appoggio per l'incremento.
+\end{itemize}
 
 \pagebreak
 \addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
@@ -83,7 +88,7 @@ un ciclo di clock per attendere la lettura.
 
 \pagebreak
 \subsection{Descrizione degli stati}
-Il componente è stato definito con una macchina a stati in particolare possiede 14 stati descritti qui di seguito.
+Il modulo è stato realizzato come una macchina a stati, in particolare comprende 14 stati descritti di seguito.
 
 \subsubsection{RESET}
 Lo stato di RESET è lo stato iniziale della macchina ed è l'unico raggiungibile da tutti gli altri. Quando il componente riceve un segnale di i\_rst alto, ferma l'esecuzione e tutto riparte dallo stato di reset. La macchina esce da questo stato solo con il segnale i\_start alto.
@@ -145,6 +150,7 @@ Per evitare di effettuare più volte lo stesso calcolo, in questo stato viene sa
 \section{Conclusioni}
 Possibili ottimizzazioni.
 
+\pagebreak
 \printbibliography
 
 \end{document}
