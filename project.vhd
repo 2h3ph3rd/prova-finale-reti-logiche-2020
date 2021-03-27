@@ -66,153 +66,153 @@ BEGIN
     BEGIN
         IF (rising_edge(i_clk)) THEN
 
-            IF (i_rst = '1') THEN
+            IF (i_rst = '1' AND state_next /= RESET) THEN
                 state_next <= RESET;
-            END IF;
+            ELSE
+                CASE state_next IS
 
-            CASE state_next IS
+                    WHEN RESET =>
+                        o_en <= '0';
+                        o_we <= '0';
+                        o_done <= '0';
+                        IF i_start = '1' THEN
+                            state_next <= READ_COLS_REQ;
+                        ELSE
+                            state_next <= RESET;
+                        END IF;
 
-                WHEN RESET =>
-                    o_en <= '0';
-                    o_we <= '0';
-                    o_done <= '0';
-                    IF i_start = '1' THEN
-                        state_next <= READ_COLS_REQ;
-                    ELSE
+                    WHEN READ_COLS_REQ =>
+                        o_en <= '1';
+                        o_we <= '0';
+                        o_address <= "0000000000000000";
+                        state_after_wait <= READ_COLS;
+                        state_next <= MEM_WAIT;
+
+                    WHEN MEM_WAIT =>
+                        o_we <= '0';
+                        o_en <= '0';
+                        state_next <= state_after_wait;
+
+                    WHEN READ_COLS =>
+                        num_cols <= i_data;
+                        state_next <= READ_ROWS_REQ;
+
+                    WHEN READ_ROWS_REQ =>
+                        o_en <= '1';
+                        o_we <= '0';
+                        o_address <= "0000000000000001";
+                        state_after_wait <= READ_ROWS;
+                        state_next <= MEM_WAIT;
+
+                    WHEN READ_ROWS =>
+                        num_pixels <= to_integer(unsigned(i_data * num_cols));
+                        state_next <= READ_PIXELS_START;
+
+                    WHEN READ_PIXELS_START =>
+                        count <= 0;
+                        min_pixel_value <= 255;
+                        max_pixel_value <= 0;
+                        -- If the image is empty there is nothing to do
+                        IF num_pixels = 0 THEN
+                            state_next <= DONE;
+                        ELSE
+                            state_after_read <= CHECK_MIN_MAX;
+                            state_next <= READ_PIXEL_REQ;
+                        END IF;
+
+                    WHEN READ_PIXEL_REQ =>
+                        tmp_count <= count + 1;
+                        o_en <= '1';
+                        o_we <= '0';
+                        o_address <= STD_LOGIC_VECTOR(to_unsigned(2 + count, 16));
+                        state_after_wait <= READ_PIXEL;
+                        state_next <= MEM_WAIT;
+
+                    WHEN READ_PIXEL =>
+                        count <= tmp_count;
+                        pixel_value <= to_integer(unsigned(i_data));
+                        state_next <= state_after_read;
+
+                    WHEN CHECK_MIN_MAX =>
+                        IF pixel_value < min_pixel_value THEN
+                            min_pixel_value <= pixel_value;
+                        ELSIF pixel_value > max_pixel_value THEN
+                            max_pixel_value <= pixel_value;
+                        END IF;
+
+                        -- Check for remaining pixels
+                        IF count < num_pixels THEN
+                            state_next <= READ_PIXEL_REQ;
+                        ELSE
+                            state_next <= WRITE_START;
+                        END IF;
+
+                    WHEN WRITE_START =>
+                        count <= 0;
+                        -- delta_value = max_pixel_value - min_pixel_value
+                        -- shift_level = (8 - FLOOR(LOG2(delta_value + 1)))
+                        CASE max_pixel_value - min_pixel_value IS
+                            WHEN 1 TO 2 =>
+                                shift_level <= 7;
+                                overflow_threshold <= 1;
+                            WHEN 3 TO 6 =>
+                                shift_level <= 6;
+                                overflow_threshold <= 3;
+                            WHEN 7 TO 14 =>
+                                shift_level <= 5;
+                                overflow_threshold <= 7;
+                            WHEN 15 TO 30 =>
+                                shift_level <= 4;
+                                overflow_threshold <= 15;
+                            WHEN 31 TO 62 =>
+                                shift_level <= 3;
+                                overflow_threshold <= 31;
+                            WHEN 63 TO 126 =>
+                                shift_level <= 2;
+                                overflow_threshold <= 63;
+                            WHEN 127 TO 254 =>
+                                shift_level <= 1;
+                                overflow_threshold <= 127;
+                            WHEN OTHERS =>
+                                shift_level <= 0;
+                                overflow_threshold <= 255;
+                        END CASE;
+                        state_after_read <= EQUALIZE_PIXEL;
+                        state_next <= READ_PIXEL_REQ;
+
+                    WHEN EQUALIZE_PIXEL =>
+                        -- temp_pixel_value = current_pixel_value - min_pixel_value 
+                        new_pixel_value <= pixel_value - min_pixel_value;
+                        state_next <= WRITE_NEW_PIXEL;
+
+                    WHEN WRITE_NEW_PIXEL =>
+                        o_we <= '1';
+                        o_en <= '1';
+                        o_address <= STD_LOGIC_VECTOR(to_unsigned(1 + num_pixels + count, 16));
+
+                        -- Check for overflow
+                        -- new_pixel_value = MIN(255 , temp_pixel_value << shift_level)
+                        IF new_pixel_value > overflow_threshold THEN
+                            o_data <= "11111111";
+                        ELSE
+                            o_data <= STD_LOGIC_VECTOR(shift_left(to_unsigned(new_pixel_value, 8), shift_level));
+                        END IF;
+
+                        -- Check for remaining pixels
+                        IF count < num_pixels THEN
+                            state_next <= READ_PIXEL_REQ;
+                        ELSE
+                            state_next <= DONE;
+                        END IF;
+
+                    WHEN DONE =>
+                        o_we <= '0';
+                        o_en <= '0';
+                        o_done <= '1';
                         state_next <= RESET;
-                    END IF;
 
-                WHEN READ_COLS_REQ =>
-                    o_en <= '1';
-                    o_we <= '0';
-                    o_address <= "0000000000000000";
-                    state_after_wait <= READ_COLS;
-                    state_next <= MEM_WAIT;
-
-                WHEN MEM_WAIT =>
-                    o_we <= '0';
-                    o_en <= '0';
-                    state_next <= state_after_wait;
-
-                WHEN READ_COLS =>
-                    num_cols <= i_data;
-                    state_next <= READ_ROWS_REQ;
-
-                WHEN READ_ROWS_REQ =>
-                    o_en <= '1';
-                    o_we <= '0';
-                    o_address <= "0000000000000001";
-                    state_after_wait <= READ_ROWS;
-                    state_next <= MEM_WAIT;
-
-                WHEN READ_ROWS =>
-                    num_pixels <= to_integer(unsigned(i_data * num_cols));
-                    state_next <= READ_PIXELS_START;
-
-                WHEN READ_PIXELS_START =>
-                    count <= 0;
-                    min_pixel_value <= 255;
-                    max_pixel_value <= 0;
-                    -- If the image is empty there is nothing to do
-                    IF num_pixels = 0 THEN
-                        state_next <= DONE;
-                    ELSE
-                        state_after_read <= CHECK_MIN_MAX;
-                        state_next <= READ_PIXEL_REQ;
-                    END IF;
-
-                WHEN READ_PIXEL_REQ =>
-                    tmp_count <= count + 1;
-                    o_en <= '1';
-                    o_we <= '0';
-                    o_address <= STD_LOGIC_VECTOR(to_unsigned(2 + count, 16));
-                    state_after_wait <= READ_PIXEL;
-                    state_next <= MEM_WAIT;
-
-                WHEN READ_PIXEL =>
-                    count <= tmp_count;
-                    pixel_value <= to_integer(unsigned(i_data));
-                    state_next <= state_after_read;
-
-                WHEN CHECK_MIN_MAX =>
-                    IF pixel_value < min_pixel_value THEN
-                        min_pixel_value <= pixel_value;
-                    ELSIF pixel_value > max_pixel_value THEN
-                        max_pixel_value <= pixel_value;
-                    END IF;
-
-                    -- Check for remaining pixels
-                    IF count < num_pixels THEN
-                        state_next <= READ_PIXEL_REQ;
-                    ELSE
-                        state_next <= WRITE_START;
-                    END IF;
-
-                WHEN WRITE_START =>
-                    count <= 0;
-                    -- delta_value = max_pixel_value - min_pixel_value
-                    -- shift_level = (8 - FLOOR(LOG2(delta_value + 1)))
-                    CASE max_pixel_value - min_pixel_value IS
-                        WHEN 1 TO 2 =>
-                            shift_level <= 7;
-                            overflow_threshold <= 1;
-                        WHEN 3 TO 6 =>
-                            shift_level <= 6;
-                            overflow_threshold <= 3;
-                        WHEN 7 TO 14 =>
-                            shift_level <= 5;
-                            overflow_threshold <= 7;
-                        WHEN 15 TO 30 =>
-                            shift_level <= 4;
-                            overflow_threshold <= 15;
-                        WHEN 31 TO 62 =>
-                            shift_level <= 3;
-                            overflow_threshold <= 31;
-                        WHEN 63 TO 126 =>
-                            shift_level <= 2;
-                            overflow_threshold <= 63;
-                        WHEN 127 TO 254 =>
-                            shift_level <= 1;
-                            overflow_threshold <= 127;
-                        WHEN OTHERS =>
-                            shift_level <= 0;
-                            overflow_threshold <= 255;
-                    END CASE;
-                    state_after_read <= EQUALIZE_PIXEL;
-                    state_next <= READ_PIXEL_REQ;
-
-                WHEN EQUALIZE_PIXEL =>
-                    -- temp_pixel_value = current_pixel_value - min_pixel_value 
-                    new_pixel_value <= pixel_value - min_pixel_value;
-                    state_next <= WRITE_NEW_PIXEL;
-
-                WHEN WRITE_NEW_PIXEL =>
-                    o_we <= '1';
-                    o_en <= '1';
-                    o_address <= STD_LOGIC_VECTOR(to_unsigned(1 + num_pixels + count, 16));
-
-                    -- Check for overflow
-                    -- new_pixel_value = MIN(255 , temp_pixel_value << shift_level)
-                    IF new_pixel_value > overflow_threshold THEN
-                        o_data <= "11111111";
-                    ELSE
-                        o_data <= STD_LOGIC_VECTOR(shift_left(to_unsigned(new_pixel_value, 8), shift_level));
-                    END IF;
-
-                    -- Check for remaining pixels
-                    IF count < num_pixels THEN
-                        state_next <= READ_PIXEL_REQ;
-                    ELSE
-                        state_next <= DONE;
-                    END IF;
-
-                WHEN DONE =>
-                    o_we <= '0';
-                    o_en <= '0';
-                    o_done <= '1';
-                    state_next <= RESET;
-
-            END CASE;
+                END CASE;
+            END IF;
         END IF;
     END PROCESS;
 END;
