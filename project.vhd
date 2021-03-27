@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------------
--- Prova Finale (Progetto di Reti Logiche)
+-- Progetto finale di Reti Logiche
 -- Prof. Gianluca Palermo - Anno accademico 2020/2021
 -- 
 -- Francesco Pastore (Codice persona 10629332)
@@ -25,7 +25,7 @@ ENTITY project_reti_logiche IS
 END project_reti_logiche;
 
 ARCHITECTURE Behavioral OF project_reti_logiche IS
-    TYPE state_next_TYPE IS (
+    TYPE TYPE_STATE IS (
         RESET,
         MEM_WAIT,
         READ_COLS_REQ,
@@ -57,9 +57,9 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
     SIGNAL shift_level : INTEGER RANGE 0 TO 7;
     SIGNAL overflow_threshold : INTEGER RANGE 0 TO 255;
 
-    SIGNAL state_next : state_next_TYPE;
-    SIGNAL state_after_wait : state_next_TYPE;
-    SIGNAL state_after_read : state_next_TYPE;
+    SIGNAL state_next : TYPE_STATE;
+    SIGNAL state_after_wait : TYPE_STATE;
+    SIGNAL state_after_read : TYPE_STATE;
 
 BEGIN
     PROCESS (i_clk)
@@ -82,17 +82,17 @@ BEGIN
                         state_next <= RESET;
                     END IF;
 
-                WHEN MEM_WAIT =>
-                    o_we <= '0';
-                    o_en <= '0';
-                    state_next <= state_after_wait;
-
                 WHEN READ_COLS_REQ =>
                     o_en <= '1';
                     o_we <= '0';
                     o_address <= "0000000000000000";
                     state_after_wait <= READ_COLS;
                     state_next <= MEM_WAIT;
+
+                WHEN MEM_WAIT =>
+                    o_we <= '0';
+                    o_en <= '0';
+                    state_next <= state_after_wait;
 
                 WHEN READ_COLS =>
                     num_cols <= i_data;
@@ -131,7 +131,7 @@ BEGIN
 
                 WHEN READ_PIXEL =>
                     count <= tmp_count;
-                    pixel_value <= to_integer(unsigned((i_data)));
+                    pixel_value <= to_integer(unsigned(i_data));
                     state_next <= state_after_read;
 
                 WHEN CHECK_MIN_MAX =>
@@ -182,7 +182,7 @@ BEGIN
                     state_next <= READ_PIXEL_REQ;
 
                 WHEN EQUALIZE_PIXEL =>
-                    -- TEMP_PIXEL = CURRENT_PIXEL_VALUE - MIN_PIXEL_VALUE 
+                    -- temp_pixel_value = current_pixel_value - min_pixel_value 
                     new_pixel_value <= pixel_value - min_pixel_value;
                     state_next <= WRITE_NEW_PIXEL;
 
@@ -192,7 +192,7 @@ BEGIN
                     o_address <= STD_LOGIC_VECTOR(to_unsigned(1 + num_pixels + count, 16));
 
                     -- Check for overflow
-                    -- NEW_PIXEL_VALUE = MIN(255 , TEMP_PIXEL << SHIFT_LEVEL)
+                    -- new_pixel_value = MIN(255 , temp_pixel_value << shift_level)
                     IF new_pixel_value > overflow_threshold THEN
                         o_data <= "11111111";
                     ELSE
