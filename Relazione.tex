@@ -10,8 +10,6 @@
 \addbibresource{biblio.bib}
 
 \graphicspath{{./images/}}
-\setlength{\parindent}{0pt}
-\makeindex
 
 \pagestyle{fancy}
 \fancyhf{}
@@ -21,6 +19,13 @@
 \lfoot{}
 \renewcommand{\headrulewidth}{1pt}
 \renewcommand{\footrulewidth}{1pt}
+
+% add only section and subsection to the index
+\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
+% needed for the index
+\makeindex
+% removed ident space for paragraph
+\setlength{\parindent}{0pt}
 
 \begin{document}
 
@@ -44,13 +49,21 @@
 Il progetto richiede l'implementazione dell'algoritmo di equalizzazione dell'istogramma di un'immagine. Questo metodo di elaborazione permette di aumentare il contrasto di un'immagine andando a distribuire su tutto lo spetttro, in modo bilanciato, i valori di intensità precedentemente vicini. In particolare viene richiesta l'implementazione di una versione semplificata applicata solo ad immagini in scala di grigi (0-255) e grandi al massimo 128x128 pixel.
 
 \begin{figure}[h]
-    \includegraphics[width=\textwidth]{equalization.png}
+    \includegraphics[scale=0.25]{equalization.png}
     \centering
     \caption{Esempio di equalizzazione dell'istogramma di un'immagine. \cite{equalization}}
 \end{figure}
 
 \subsection{Specifiche di progetto}
-L'interfaccia del componente è stata definita nella specifica con i relativi segnali di ingresso e di uscita. Oltre a questo, è stata anche definita la struttura della memoria e l'indirizzamento dei dati. All'indirizzo zero è possibile infatti trovare il numero di colonne, seguito all'indirizzo uno da quello di righe. Dall'indirizzo due iniziano invece i valori dei singoli pixel dell'immagine fino alla posizione NUM\_COLS * NUM\_ROWS + 1. La scrittura dei pixel equalizzati deve avvenire invece dall'indirizzo immediatamente successivo all'ultimo pixel dell'immagine.
+L'interfaccia del componente è stata definita nella specifica con i relativi segnali di ingresso e di uscita. Oltre a questo, è stata definita la struttura della memoria e l'indirizzamento dei dati. All'indirizzo zero è possibile trovare il numero di colonne, seguito all'indirizzo uno da quello di righe. Dall'indirizzo due iniziano invece i valori dei singoli pixel dell'immagine fino alla posizione NUM\_COLS * NUM\_ROWS + 1. La scrittura dei pixel equalizzati deve avvenire invece dall'indirizzo immediatamente successivo all'ultimo pixel dell'immagine.
+
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{memory.png}
+    \centering
+    \caption{Esempio di memoria e relativa divisione dei dati}
+\end{figure}
+
+\pagebreak
 
 \subsection{Algoritmo in breve}
 Di seguito una breve descrizione dei punti principali dell'algoritmo da implementare. Fare riferimento alle formule per il calcolo dei valori considerati.
@@ -81,7 +94,6 @@ Rispetto all'algoritmo descritto in precedenza, l'implementazione in VHDL richie
 \end{itemize}
 
 \pagebreak
-\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
 \section{Architettura}
 
 \subsection{Segnali utilizzati}
@@ -97,13 +109,13 @@ Lo stato di RESET è lo stato iniziale della macchina ed è l'unico raggiungibil
 Nel primo byte della memoria è salvato il numero di colonne dell'immagine. Questo stato si occupa di effettuare la relativa richiesta di lettura. Essendo una lettura è necessario attendere che la memoria elabori la richiesta, per questo motivo lo stato successivo è MEM\_WAIT.
 
 \subsubsection{READ\_COLS}
-Dopo aver effettuato la richiesta di lettura nello stato READ\_COLS\_REQ in questo stato la macchina legge il numero colonne passatogli dalla memoria nel bus i\_data.
+Dopo aver effettuato la richiesta di lettura nello stato READ\_COLS\_REQ in questo stato la macchina legge il numero di colonne passatogli dalla memoria nel bus i\_data.
 
 \subsubsection{READ\_ROWS\_REQ}
 Il secondo elemento in memoria dopo il numero di colonne è il numero di righe. Anche in questo caso è necessario effettuare la richiesta di lettura, aspettare un ciclo di clock nello stato MEM\_WAIT e solo dopo leggere il valore richiesto.
 
 \subsubsection{READ\_ROWS}
-Dopo aver effettuato la richiesta di lettura in READ\_ROWS\_REQ e aspettato per l'elaborazione da parte della memoria in MEM\_WAIT in questo stato viene letto il numero di righe passato al componente tramite i\_data.
+Dopo aver effettuato la richiesta di lettura in READ\_ROWS\_REQ e aspettato per l'elaborazione da parte della memoria in MEM\_WAIT in questo stato viene letto il numero di righe passato al componente tramite i\_data. In questo caso viene calcolato direttamente il numero di pixel che costituiscono l'immagine moltiplicando il valore ricevuto per il numero di colonne richiesto in precedenza.
 
 \subsubsection{READ\_PIXELS\_START}
 In questo stato viene inizializzato il contatore  e i segnali di minimo e massimo prima di effettuare la prima scansione dell'immagine. Il minimo viene settato a 255 che corrisponde al più alto valore possibile, il massimo invece a zero che rappresenta rispettivamente quello più basso. Viene controllato inoltre che non sia stata data un'immagine vuota, altrimenti si passa direttamente allo stato di DONE.
@@ -137,21 +149,68 @@ Per evitare di effettuare più volte lo stesso calcolo, in questo stato viene sa
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{diagram.png}
     \centering
-    \caption{Diagramma della macchina a stati, in figura sono specificate le condizioni in caso di più possibili stati successivi.}
+    \caption{Diagramma della macchina a stati, in figura sono state specificate le condizioni di transizione principali.}
 \end{figure}
 
 
 \pagebreak
 \section{Risultati sperimentali}
-\subsection{Test con immagine vuota}
+
+\subsection{Simulazioni significative}
+
+\subsubsection{Simulazione standard}
+
+In questa simulazione è stato effettuato un test in una situazione standard. Da notare l'inizio dell'esecuzione solo dopo aver ricevuto il segnale di reset alto, poi abbassato e seguito da un segnale di start alto.
 
 \begin{figure}[h]
-    \includegraphics[width=\textwidth]{test\_empty\_image.png}
+    \includegraphics[width=\textwidth]{test-standard.png}
     \centering
-    \caption{Schema del componente sintetizzato.}
+    \caption{Simulazione standard}
 \end{figure}
 
+\subsubsection{Simulazione con immagine vuota}
+Si può vedere come nel caso di un'immagine vuota, dopo aver letto il numero di colonne e quello di righe, la macchina termini immediatamente l'esecuzione. Da notare che il segnale di enable viene alzato soltanto due volte, appunto quelle necessarie per leggere solo le dimensioni.
+
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{test-empty-image.png}
+    \centering
+    \caption{Simulazione con immagine vuota}
+\end{figure}
+
+\subsubsection{Simulazione con segnale di start ritardato}
+Il componente prima di iniziare l'elaborazione deve attendere da specifica il segnale di start ad alto. È possibile vedere nell'immagine che esso rispetta correttamente l'attesa.
+
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{test-delayed-start.png}
+    \centering
+    \caption{Simulazione con segnale di start ritardato}
+\end{figure}
+
+\pagebreak
+
+\subsubsection{Simulazione con reset asincrono}
+Tra le specifiche di progetto è presente la richiesta che la macchina possa essere resettata in qualsiasi momento, per poi reiniziare una nuova elaborazione. Da notare quindi nell'immagine che dopo aver ricevuto il segnale di reset, la macchina termini l'esecuzione per poi riprenderla una volta letto un segnale di start alto.
+
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{test-async-reset.png}
+    \centering
+    \caption{Simulazione con reset asincrono}
+\end{figure}
+
+\subsubsection{Simulazione con immagini multiple}
+
+In questa simulazione si è testato l'elaborazione di immagini multiple controllando che la macchina rispetti correttamente il protocollo specificato. E possibile notare infatti che la macchina attende che il segnale di start venga alzato nuovamente prima di iniziare una nuova elaborazione. In particolare non è necessario un segnale di reset per far partire la nuova elaborazione.
+
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{test-multiple-images.png}
+    \centering
+    \caption{Simulazione con immagini multiple}
+\end{figure}
+
+\pagebreak
+
 \subsection{Report di sintesi}
+Di seguito è possibile visionare i principali risultati della sintesi del componente.
 
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{schema.png}
@@ -162,13 +221,13 @@ Per evitare di effettuare più volte lo stesso calcolo, in questo stato viene sa
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{timing.png}
     \centering
-    \caption{Dettagli del report di timing del componente.}
+    \caption{Riassunto del report di timing}
 \end{figure}
 
 \begin{figure}[h]
     \includegraphics[scale=0.5]{utilization.png}
     \centering
-    \caption{Dettagli del report di utilizzo del componente.}
+    \caption{Riassunto del report di utilizzo}
 \end{figure}
 
 \pagebreak
