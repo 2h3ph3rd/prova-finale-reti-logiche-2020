@@ -47,7 +47,6 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
 
     SIGNAL num_cols : STD_LOGIC_VECTOR(7 DOWNTO 0);
     SIGNAL num_pixels : INTEGER RANGE 0 TO 13684;
-
     SIGNAL count : INTEGER RANGE 0 TO 13684;
     SIGNAL tmp_count : INTEGER RANGE 0 TO 13684;
 

@@ -95,19 +95,33 @@ Rispetto all'algoritmo descritto in precedenza, l'implementazione in VHDL richie
 % ------ ARCHITETTURA -----
 \section{Architettura}
 \subsection{Segnali utilizzati}
-\subsubsection{min\_pixel\_value e max\_pixel\_value}
-Questi segnali contengono, dopo la prima lettura dell'immagine, il valore del pixel massimo e minimo necessari per il calcolo delle varie formule di equalizzazione. Sono stati dichiarati di tipo INTEGER perchè su di essi vengono effettuare diverse operazioni aritmetiche e logiche. Il relativo range è tra 0 e 255, proprio come il massimo e il minimo valore possibile.
 
-\subsubsection{num\_cols e num\_pixels}
-Per la lettura dell'immagine è necessario un contatore e il limite da raggiungere. Per il primo è stato definito il segnale count e il rispettivo temp\_count fondamentale perchè in VHDL non è possibile assegnare un segnale a se stesso. Per il limite invece è necessario leggere il numero di righe e quello di colonne dalla memoria. In particolare una volta letto il numero di colonne e richiesto quello di righe, viene calcolato direttamente il valore id num\_pixels. Il range di count, temp\_count e num\_pixels è pari a 0-16384 perchè ogni immagine può essere grande al massimo 128x128.
+\subsubsection{num\_cols, num\_pixels, count e tmp\_count}
+Per eseguire la lettura dell'immagine è necessario conoscere la dimensione, sfruttando il numero di colonne e di righe, e un relativo contatore. In VHDL non essendo possibile assegnare un segnale a se stesso, è stato necessario aggiungere un contatore d'appoggio tmp\_count. Il range di count, temp\_count e num\_pixels è pari a 0-16384 perchè ogni immagine può essere grande al massimo 128x128.
+
+\subsubsection{min\_pixel\_value e max\_pixel\_value}
+Questi segnali contengono, dopo la prima lettura dell'immagine, il valore del pixel massimo e minimo necessari per il calcolo delle varie formule di equalizzazione. Sono stati dichiarati di tipo INTEGER con range 0-255 perchè su di essi vengono effettuare diverse operazioni aritmetiche e logiche.
+
+\subsubsection{state\_next, state\_after\_wait e state\_after\_read}
+Per le transizioni tra i vari stati sono stati defini alcuni segnali che contengono gli stati prossimi. Di specifico state\_next contiente sempre lo stato immediatamente successivo, state\_after\_wait il seguente a MEM\_WAIT mentre state\_after\_read lo stato successivo a READ\_PIXEL.
+
+\pagebreak
+
+\subsubsection{shift\_level e overflow\_threshold}
+Dopo aver calcolato minimo e massimo è possibile determinare il valore del delta\_value e del relativo shift\_level. In particolare oltre a questo valore è stato aggiunta anche la soglia di overflow utile per controllare il valore da equalizzare prima di effettuare lo shift.
+
+
+\subsubsection{pixel\_value e new\_pixel\_value}
+Entrambi questi segnali contengono valori di pixel dell'immagine e su di essi vengono effettuate diverse operazionie, per questo motivo sono di tipo INTEGER con range 0-255. In particolare pixel\_value contiene il valore di ciascun pixel letto mentre il new\_pixel\_value serve come appoggio per il calcolo del pixel equalizzato.
 
 \begin{figure}[h]
-    \includegraphics[width=\textwidth]{memory.png}
+    \includegraphics[width=\textwidth]{signals.png}
     \centering
-    \caption{Dettaglio del codice in cui è possibile vedere i segnali utilizzati}
+    \caption{Dichiarazione dei segnali utilizzati}
 \end{figure}
 
 \pagebreak
+
 \subsection{Descrizione degli stati}
 Il modulo è stato realizzato come una macchina a stati, in particolare comprende 14 stati descritti di seguito.
 
