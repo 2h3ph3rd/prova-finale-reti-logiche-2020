@@ -38,7 +38,6 @@
     \vspace{5mm} %5mm vertical space
     \large Francesco Pastore - Codice persona: 10629332\\
     \vspace{100mm}
-    \includegraphics[scale=0.7]{logo.png}
     \vspace*{\fill}
 \end{titlepage}
 
@@ -71,9 +70,8 @@ Di seguito una breve descrizione dei punti principali dell'algoritmo da implemen
     \item Lettura del numero di righe.
     \item Verificare che l'immagine non sia vuota, altrimenti terminare l'esecuzione.
     \item Lettura dei pixel dell'immagine cercando il valore minimo e massimo.
-    \item Calcolare del delta\_value e del relativo shift\_level.
-    \item Lettura dei pixel dell'immagine e calcolo del temp\_pixel\_value.
-    \item Calcolare il new\_pixel\_value per ciascun pixel,\\ considerando il temp\_pixel\_value trovato al punto precedente.
+    \item Calcolare il delta\_value e il relativo shift\_level.
+    \item Seconda lettura dell'immagine con equalizzazione dei pixel.
     \item Scrittura in memoria dei nuovi valori dei pixel.
 \end{enumerate}
 \begin{figure}[h]
@@ -86,8 +84,8 @@ Di seguito una breve descrizione dei punti principali dell'algoritmo da implemen
 Rispetto all'algoritmo descritto in precedenza, l'implementazione in VHDL richiede alcune modifiche.
 \begin{itemize}
     \item La lettura dalla memoria non è istantanea, ma necessita di un ciclo di clock di attesa dopo aver effettuato la richiesta. In particolare nel componente è stato implementato lo stato MEM\_WAIT.
-    \item L'assegnamento di valori ai segnali non è immediato, ma avviene al ciclo di clock successivo. Per questo motivo alcune operazioni vengono eseguite in più stati successivi.
-    \item Non è possibile assegnare ad un segnale esso stesso seppure con modifiche. Questo richiede per il contatore di utilizzare un altro segnale come appoggio per l'incremento.
+    \item L'assegnamento di valori ai segnali non è immediato, ma avviene al ciclo di clock successivo. Per questo motivo alcune operazioni vengono eseguite in stati successivi.
+    \item Non è possibile assegnare ad un segnale esso stesso seppure con modifiche. Questo richiede, ad esempio per il contatore, di utilizzare un altro segnale come appoggio per effettuare l'incremento.
 \end{itemize}
 
 \pagebreak
@@ -97,7 +95,7 @@ Rispetto all'algoritmo descritto in precedenza, l'implementazione in VHDL richie
 \subsection{Segnali utilizzati}
 
 \subsubsection{num\_cols, num\_pixels, count e tmp\_count}
-Per eseguire la lettura dell'immagine è necessario conoscere la dimensione, sfruttando il numero di colonne e di righe, e un relativo contatore. In VHDL non essendo possibile assegnare un segnale a se stesso, è stato necessario aggiungere un contatore d'appoggio tmp\_count. Il range di count, temp\_count e num\_pixels è pari a 0-16384 perchè ogni immagine può essere grande al massimo 128x128.
+Per eseguire la lettura dell'immagine è necessario conoscere la dimensione, sfruttando il numero di colonne e di righe e un relativo contatore. In VHDL non essendo possibile assegnare un segnale a se stesso, è stato necessario aggiungere un contatore d'appoggio tmp\_count. Il range di count, temp\_count e num\_pixels è pari a 0-16384 perchè ogni immagine può essere grande al massimo 128x128.
 
 \subsubsection{min\_pixel\_value e max\_pixel\_value}
 Questi segnali contengono, dopo la prima lettura dell'immagine, il valore del pixel massimo e minimo necessari per il calcolo delle varie formule di equalizzazione. Sono stati dichiarati di tipo INTEGER con range 0-255 perchè su di essi vengono effettuare diverse operazioni aritmetiche e logiche.
@@ -112,7 +110,7 @@ Dopo aver calcolato minimo e massimo è possibile determinare il valore del delt
 
 
 \subsubsection{pixel\_value e new\_pixel\_value}
-Entrambi questi segnali contengono valori di pixel dell'immagine e su di essi vengono effettuate diverse operazionie, per questo motivo sono di tipo INTEGER con range 0-255. In particolare pixel\_value contiene il valore di ciascun pixel letto mentre il new\_pixel\_value serve come appoggio per il calcolo del pixel equalizzato.
+Entrambi questi segnali contengono valori di pixel dell'immagine e su di essi vengono effettuate diverse operazioni, per questo motivo sono di tipo INTEGER con range 0-255. In particolare pixel\_value contiene il valore di ciascun pixel letto mentre il new\_pixel\_value serve come appoggio per il calcolo del pixel equalizzato.
 
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{signals.png}
@@ -126,13 +124,13 @@ Entrambi questi segnali contengono valori di pixel dell'immagine e su di essi ve
 Il modulo è stato realizzato come una macchina a stati, in particolare comprende 14 stati descritti di seguito.
 
 \subsubsection{RESET}
-Lo stato di RESET è lo stato iniziale della macchina ed è l'unico raggiungibile da tutti gli altri. Quando il componente riceve un segnale di i\_rst alto, ferma l'esecuzione e tutto riparte dallo stato di reset. La macchina esce da questo stato solo con il segnale i\_start alto.
+Lo stato di RESET è lo stato iniziale della macchina ed è l'unico raggiungibile da tutti gli altri. Quando il componente riceve un segnale di i\_rst alto ferma l'esecuzione per poi ripartire dallo stato di reset. La macchina esce da questo stato solo con il segnale i\_start alto.
 
 \subsubsection{READ\_COLS\_REQ}
 Nel primo byte della memoria è salvato il numero di colonne dell'immagine. Questo stato si occupa di effettuare la relativa richiesta di lettura. Essendo una lettura è necessario attendere che la memoria elabori la richiesta, per questo motivo lo stato successivo è MEM\_WAIT.
 
 \subsubsection{READ\_COLS}
-Dopo aver effettuato la richiesta di lettura nello stato READ\_COLS\_REQ in questo stato la macchina legge il numero di colonne passatogli dalla memoria nel bus i\_data.
+Dopo aver effettuato la richiesta di lettura nello stato READ\_COLS\_REQ in questo stato la macchina legge il numero di colonne passatole dalla memoria nel bus i\_data.
 
 \subsubsection{READ\_ROWS\_REQ}
 Il secondo elemento in memoria dopo il numero di colonne è il numero di righe. Anche in questo caso è necessario effettuare la richiesta di lettura, aspettare un ciclo di clock nello stato MEM\_WAIT e solo dopo leggere il valore richiesto.
@@ -144,7 +142,7 @@ Dopo aver effettuato la richiesta di lettura in READ\_ROWS\_REQ e aspettato per 
 In questo stato viene inizializzato il contatore  e i segnali di minimo e massimo prima di effettuare la prima scansione dell'immagine. Il minimo viene settato a 255 che corrisponde al più alto valore possibile, il massimo invece a zero che rappresenta rispettivamente quello più basso. Viene controllato inoltre che non sia stata data un'immagine vuota, altrimenti si passa direttamente allo stato di DONE.
 
 \subsubsection{READ\_PIXEL\_REQ}
-Dopo aver calcolato il numero di pixel contenuti nell'immagine grazie al numero di colonne e di righe, è possibile leggerli scansionandola dall'inizio alla fine. In questo stato viene quindi settato l'indirizzo per la lettura del prossimo che verrà poi letto nello stato READ\_NEXT\_PIXEL. Il contatore necessario per la lettura viene incrementato in questo stato sfruttando un segnale temporaneo d'appoggio.
+Dopo aver calcolato il numero di pixel contenuti nell'immagine grazie al numero di colonne e di righe, è possibile leggerli scansionandola dall'inizio alla fine. In questo stato viene quindi settato l'indirizzo per la lettura del prossimo pixel che verrà poi letto nello stato READ\_NEXT\_PIXEL. Il contatore necessario per la lettura viene incrementato in questo stato sfruttando un segnale temporaneo d'appoggio.
 
 \subsubsection{READ\_PIXEL}
 Dopo aver effettuato la richiesta di lettura e aspettato l'elaborazione da parte della memoria, in questo stato la macchina legge il pixel passatole nell'ingresso i\_data. Viene inoltre salvato il valore del contatore, che era stato incrementato nello stato precedente sfruttando un segnale d'appoggio.
@@ -156,10 +154,10 @@ La memoria richiede un ciclo di clock per l'elaborazione di una richiesta di let
 La prima scansione serve per trovare i valori minimi e massimi dei pixel dell'immagine, in modo da poter poi effettuare l'equalizzazione. In questo stato viene quindi controllato ciascun pixel dopo la prima lettura e confrontato con i valori di massimo e minimo temporanei.
 
 \subsubsection{WRITE\_START}
-Una volta effettuata la prima scansione e aver trovato quindi il massimo e il minimo, è possibile calcolare il delta\_value dato dalla differenza dei due valori. Tramite uno switch e le relative soglie, viene determinato lo shift\_level e il relativo overflow\_threshold. Prima di poter effettuare la nuova scansione in questo stato è necessario inizializzare nuovamente il contatore.
+Una volta effettuata la prima scansione e aver trovato quindi il massimo e il minimo, è possibile calcolare il delta\_value dato dalla differenza dei due valori. Tramite uno switch e le relative soglie, viene determinato lo shift\_level e il relativo overflow\_threshold. Per poter effettuare la seconda scansione, in questo stato viene inizializzato nuovamente il contatore.
 
 \subsubsection{EQUALIZE\_PIXEL}
-Per evitare di effettuare più volte lo\\ stesso calcolo, in questo stato viene salvata nel segnale new\_pixel\_value\\ la differenza tra il valore di ciascun pixel e il relativo minimo dopo ogni lettura.
+Per evitare di effettuare più volte lo stesso calcolo, in questo stato viene salvata nel segnale new\_pixel\_value la differenza tra il valore di ciascun pixel e il relativo minimo dopo ogni lettura.
 
 \subsubsection{WRITE\_NEW\_PIXEL}
 È in questo stato che la macchina scrive il valore del pixel equalizzato facendo attenzione ad effettuare lo shift solo quando non c'è overflow. A questo fine viene sfruttato il valore di soglia definito nello stato WRITE\_START sulla base del delta\_value.
@@ -231,7 +229,7 @@ Oltre alle simulazioni riportate, sono stati scritti altri testbench per effettu
 \pagebreak
 
 \subsection{Report di sintesi}
-Di seguito è possibile visionare i principali risultati della sintesi del componente. Rispetto al report di utilizzo che l'elevato numero di LUT e FF è dovuto principalmente alla moltiplicazione per il calcolo del numero di pixel e allo shift per l'equalizzazione dei pixel. Entrambe però sono operazioni fondamentali per la risoluzione dell'algoritmo e non sono stati trovati altri modi per ottimizzarle.
+Di seguito è possibile visionare i principali risultati della sintesi del componente. Rispetto al report di utilizzo l'elevato numero di LUT e FF è dovuto principalmente alla moltiplicazione per il calcolo del numero di pixel e allo shift per l'equalizzazione dei pixel. Entrambe però sono operazioni fondamentali per la risoluzione dell'algoritmo e non sono stati trovati altri modi per ottimizzarle.
 
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{schema.png}
