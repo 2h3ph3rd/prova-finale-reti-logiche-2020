@@ -231,7 +231,7 @@ Oltre alle simulazioni riportate, sono stati scritti altri testbench per effettu
 \pagebreak
 
 \subsection{Report di sintesi}
-Di seguito è possibile visionare i principali risultati della sintesi del componente. Rispetto al report di utilizzo è da notare che l'elevato numero di LUT e FF è dovuto principalmente alla moltiplicazione per il calcolo del numero di pixel e allo shift per l'equalizzazione dei pixel. Entrambe però sono operazioni fondamentali per la risoluzione dell'algoritmo e non sono stati trovati altri modi per ottimizzarle.
+Di seguito è possibile visionare i principali risultati della sintesi del componente. Rispetto al report di utilizzo che l'elevato numero di LUT e FF è dovuto principalmente alla moltiplicazione per il calcolo del numero di pixel e allo shift per l'equalizzazione dei pixel. Entrambe però sono operazioni fondamentali per la risoluzione dell'algoritmo e non sono stati trovati altri modi per ottimizzarle.
 
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{schema.png}
@@ -253,7 +253,7 @@ Di seguito è possibile visionare i principali risultati della sintesi del compo
 
 \pagebreak
 \section{Conclusioni}
-Possibili ottimizzazioni.
+Il componente passa correttamente i test mostrati sia in behavioural che in post sintesi rispettando, almeno per i casi proposti, i requisiti della specifica. Sono stati scritti anche altri testbench per verificare il funzionamento in situazioni diverse e nei rispettivi casi limite. Per evitare di effettuare lo shift su 16 bit e poi controllarne il risultato, è stata implementata una soglia di overflow. In questo modo basta eseguire un confronto su 8 bit prima di shiftare il valore di new\_pixel\_value. Le operazioni di moltiplicazione e il calcolo di shift sono quelle più onerose, ma non è stato possibile trovare soluzioni alternative. Maggiori ottimizzazioni si potrebbero quindi effettuare trovando metodi migliori e meno onerosi.
 
 \pagebreak
 \printbibliography
