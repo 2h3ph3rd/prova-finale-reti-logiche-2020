@@ -103,20 +103,12 @@ Questi segnali contengono, dopo la prima lettura dell'immagine, il valore del pi
 \subsubsection{state\_next, state\_after\_wait e state\_after\_read}
 Per le transizioni tra i vari stati sono stati defini alcuni segnali che contengono gli stati prossimi. Di specifico state\_next contiente sempre lo stato immediatamente successivo, state\_after\_wait il seguente a MEM\_WAIT mentre state\_after\_read lo stato successivo a READ\_PIXEL.
 
-\pagebreak
-
 \subsubsection{shift\_level e overflow\_threshold}
 Dopo aver calcolato minimo e massimo è possibile determinare il valore del delta\_value e del relativo shift\_level. In particolare oltre a questo valore è stato aggiunta anche la soglia di overflow utile per controllare il valore da equalizzare prima di effettuare lo shift.
 
 
 \subsubsection{pixel\_value e new\_pixel\_value}
 Entrambi questi segnali contengono valori di pixel dell'immagine e su di essi vengono effettuate diverse operazioni, per questo motivo sono di tipo INTEGER con range 0-255. In particolare pixel\_value contiene il valore di ciascun pixel letto mentre il new\_pixel\_value serve come appoggio per il calcolo del pixel equalizzato.
-
-\begin{figure}[h]
-    \includegraphics[width=\textwidth]{signals.png}
-    \centering
-    \caption{Dichiarazione dei segnali utilizzati}
-\end{figure}
 
 \pagebreak
 
@@ -163,7 +155,7 @@ Per evitare di effettuare più volte lo stesso calcolo, in questo stato viene sa
 È in questo stato che la macchina scrive il valore del pixel equalizzato facendo attenzione ad effettuare lo shift solo quando non c'è overflow. A questo fine viene sfruttato il valore di soglia definito nello stato WRITE\_START sulla base del delta\_value.
 
 \subsubsection{DONE}
-È lo stato finale in cui giunge la macchina al termine di un'esecuzione completa. Viene settato o\_done alto e lo stato successivo è quello di RESET, in modo che il componente rimanga pronto per un'altra possibile esecuzione.
+È lo stato finale in cui giunge la macchina al termine di un'esecuzione completa. Viene settato o\_done ad alto e si rimane in attesa che venga abbassato il segnale di i\_start come da specifica. Una volta ricevuto quest'ultimo valore, si passa allo stato di RESET in modo da prepararsi ad un'altra possibile elaborazione.
 
 \subsection{Diagramma degli stati}
 \begin{figure}[h]
@@ -250,10 +242,10 @@ Di seguito è possibile visionare i principali risultati della sintesi del compo
 \end{figure}
 
 \pagebreak
+
 \section{Conclusioni}
 Il componente passa correttamente i test mostrati sia in behavioural che in post sintesi rispettando, almeno per i casi proposti, i requisiti della specifica. Sono stati scritti anche altri testbench per verificare il funzionamento in situazioni diverse e nei rispettivi casi limite. Per evitare di effettuare lo shift su 16 bit e poi controllarne il risultato, è stata implementata una soglia di overflow. In questo modo basta eseguire un confronto su 8 bit prima di shiftare il valore di new\_pixel\_value. Le operazioni di moltiplicazione e il calcolo di shift sono quelle più onerose, ma non è stato possibile trovare soluzioni alternative. Maggiori ottimizzazioni si potrebbero quindi effettuare trovando metodi migliori e meno onerosi.
 
-\pagebreak
 \printbibliography
 
 \end{document}
