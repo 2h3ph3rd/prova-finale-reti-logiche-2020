@@ -94,7 +94,7 @@ BEGIN
         tb_start <= '1';
         WAIT FOR c_CLOCK_PERIOD;
         WAIT UNTIL tb_done = '1';
-        WAIT FOR c_CLOCK_PERIOD;
+        WAIT FOR 10 * c_CLOCK_PERIOD;
         tb_start <= '0';
         WAIT UNTIL tb_done = '0';
         WAIT FOR 100 ns;
