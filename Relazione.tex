@@ -100,6 +100,8 @@ Per eseguire la lettura dell'immagine è necessario conoscere la dimensione, sfr
 \subsubsection{min\_pixel\_value e max\_pixel\_value}
 Questi segnali contengono, dopo la prima lettura dell'immagine, il valore del pixel massimo e minimo necessari per il calcolo delle varie formule di equalizzazione. Sono stati dichiarati di tipo INTEGER con range 0-255 perchè su di essi vengono effettuare diverse operazioni aritmetiche e logiche.
 
+\pagebreak
+
 \subsubsection{state\_next, state\_after\_wait e state\_after\_read}
 Per le transizioni tra i vari stati sono stati defini alcuni segnali che contengono gli stati prossimi. Di specifico state\_next contiente sempre lo stato immediatamente successivo, state\_after\_wait il seguente a MEM\_WAIT mentre state\_after\_read lo stato successivo a READ\_PIXEL.
 
@@ -109,6 +111,15 @@ Dopo aver calcolato minimo e massimo è possibile determinare il valore del delt
 
 \subsubsection{pixel\_value e new\_pixel\_value}
 Entrambi questi segnali contengono valori di pixel dell'immagine e su di essi vengono effettuate diverse operazioni, per questo motivo sono di tipo INTEGER con range 0-255. In particolare pixel\_value contiene il valore di ciascun pixel letto mentre il new\_pixel\_value serve come appoggio per il calcolo del pixel equalizzato.
+
+\subsection{Esempio di utilizzo dei segnali}
+Per mostrare l'utilizzo effettivo dei segnali, qui di seguito è mostrata una possibile applicazione con il caso di esempio proposto per la struttura della memoria.
+
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{example.png}
+    \centering
+    \caption{Equalizzazione dell'immagine di prova con relativi valori dei segnali fondamentali}
+\end{figure}
 
 \pagebreak
 
