@@ -18,17 +18,23 @@ ARCHITECTURE projecttb OF project_tb IS
     SIGNAL mem_we : STD_LOGIC;
 
     TYPE ram_type IS ARRAY (65535 DOWNTO 0) OF STD_LOGIC_VECTOR(7 DOWNTO 0);
-    SIGNAL RAM : ram_type := (0 => STD_LOGIC_VECTOR(to_unsigned(2, 8)),
-    1 => STD_LOGIC_VECTOR(to_unsigned(2, 8)),
-    2 => STD_LOGIC_VECTOR(to_unsigned(46, 8)),
-    3 => STD_LOGIC_VECTOR(to_unsigned(131, 8)),
-    4 => STD_LOGIC_VECTOR(to_unsigned(62, 8)),
-    5 => STD_LOGIC_VECTOR(to_unsigned(89, 8)),
-    OTHERS => (OTHERS => '0'));
-    -- Expected Output  6 -> 0                         
-    -- Expected Output  7 -> 255                         
-    -- Expected Output  8 -> 64                         
-    -- Expected Output  9 -> 172                         
+    SIGNAL RAM : ram_type := (
+        0 => STD_LOGIC_VECTOR(to_unsigned(4, 8)),
+        1 => STD_LOGIC_VECTOR(to_unsigned(3, 8)),
+        2 => STD_LOGIC_VECTOR(to_unsigned(76, 8)),
+        3 => STD_LOGIC_VECTOR(to_unsigned(131, 8)),
+        4 => STD_LOGIC_VECTOR(to_unsigned(109, 8)),
+        5 => STD_LOGIC_VECTOR(to_unsigned(89, 8)),
+        6 => STD_LOGIC_VECTOR(to_unsigned(46, 8)),
+        7 => STD_LOGIC_VECTOR(to_unsigned(121, 8)),
+        8 => STD_LOGIC_VECTOR(to_unsigned(62, 8)),
+        9 => STD_LOGIC_VECTOR(to_unsigned(59, 8)),
+        10 => STD_LOGIC_VECTOR(to_unsigned(46, 8)),
+        11 => STD_LOGIC_VECTOR(to_unsigned(77, 8)),
+        12 => STD_LOGIC_VECTOR(to_unsigned(68, 8)),
+        13 => STD_LOGIC_VECTOR(to_unsigned(94, 8)),
+        OTHERS => (OTHERS => '0')
+    );
 
     COMPONENT project_reti_logiche IS
         PORT (
@@ -69,7 +75,7 @@ BEGIN
                 IF mem_we = '1' THEN
                     RAM(conv_integer(mem_address)) <= mem_i_data;
                     mem_o_data <= mem_i_data AFTER 1 ns;
-                    ELSE
+                ELSE
                     mem_o_data <= RAM(conv_integer(mem_address)) AFTER 1 ns;
                 END IF;
             END IF;
@@ -84,22 +90,27 @@ BEGIN
         WAIT FOR 100 ns;
         tb_rst <= '0';
         WAIT FOR c_CLOCK_PERIOD;
-        WAIT FOR 100 ns;
+        WAIT FOR 500 ns;
         tb_start <= '1';
         WAIT FOR c_CLOCK_PERIOD;
         WAIT UNTIL tb_done = '1';
-        WAIT FOR c_CLOCK_PERIOD;
+        WAIT FOR 10 * c_CLOCK_PERIOD;
         tb_start <= '0';
         WAIT UNTIL tb_done = '0';
         WAIT FOR 100 ns;
 
-        -- Immagine originale =  [46, 131, 62, 89]  
-        -- Immagine di output =  [0, 255, 64, 172]  
-
-        ASSERT RAM(6) = STD_LOGIC_VECTOR(to_unsigned(0, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  0  found " & INTEGER'image(to_integer(unsigned(RAM(6)))) SEVERITY failure;
-        ASSERT RAM(7) = STD_LOGIC_VECTOR(to_unsigned(255, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  255  found " & INTEGER'image(to_integer(unsigned(RAM(7)))) SEVERITY failure;
-        ASSERT RAM(8) = STD_LOGIC_VECTOR(to_unsigned(64, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  64  found " & INTEGER'image(to_integer(unsigned(RAM(8)))) SEVERITY failure;
-        ASSERT RAM(9) = STD_LOGIC_VECTOR(to_unsigned(172, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(9)))) SEVERITY failure;
+        ASSERT RAM(14) = STD_LOGIC_VECTOR(to_unsigned(120, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  0  found " & INTEGER'image(to_integer(unsigned(RAM(14)))) SEVERITY failure;
+        ASSERT RAM(15) = STD_LOGIC_VECTOR(to_unsigned(255, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  255  found " & INTEGER'image(to_integer(unsigned(RAM(15)))) SEVERITY failure;
+        ASSERT RAM(16) = STD_LOGIC_VECTOR(to_unsigned(252, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  64  found " & INTEGER'image(to_integer(unsigned(RAM(16)))) SEVERITY failure;
+        ASSERT RAM(17) = STD_LOGIC_VECTOR(to_unsigned(172, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(17)))) SEVERITY failure;
+        ASSERT RAM(18) = STD_LOGIC_VECTOR(to_unsigned(0, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  0  found " & INTEGER'image(to_integer(unsigned(RAM(18)))) SEVERITY failure;
+        ASSERT RAM(19) = STD_LOGIC_VECTOR(to_unsigned(255, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  255  found " & INTEGER'image(to_integer(unsigned(RAM(19)))) SEVERITY failure;
+        ASSERT RAM(20) = STD_LOGIC_VECTOR(to_unsigned(64, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  64  found " & INTEGER'image(to_integer(unsigned(RAM(20)))) SEVERITY failure;
+        ASSERT RAM(21) = STD_LOGIC_VECTOR(to_unsigned(52, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(21)))) SEVERITY failure;
+        ASSERT RAM(22) = STD_LOGIC_VECTOR(to_unsigned(0, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(22)))) SEVERITY failure;
+        ASSERT RAM(23) = STD_LOGIC_VECTOR(to_unsigned(124, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(23)))) SEVERITY failure;
+        ASSERT RAM(24) = STD_LOGIC_VECTOR(to_unsigned(88, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(24)))) SEVERITY failure;
+        ASSERT RAM(25) = STD_LOGIC_VECTOR(to_unsigned(192, 8)) REPORT "TEST FALLITO (WORKING ZONE). Expected  172  found " & INTEGER'image(to_integer(unsigned(RAM(25)))) SEVERITY failure;
 
         ASSERT false REPORT "Simulation Ended! TEST PASSATO" SEVERITY failure;
     END PROCESS test;
