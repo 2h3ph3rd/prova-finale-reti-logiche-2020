@@ -177,10 +177,12 @@ Per evitare di effettuare più volte lo stesso calcolo, in questo stato viene sa
 È lo stato finale in cui giunge la macchina al termine di un'esecuzione completa. Viene settato o\_done ad alto e si rimane in attesa che venga abbassato il segnale di i\_start come da specifica. Una volta ricevuto quest'ultimo valore, si passa allo stato di RESET in modo da prepararsi ad un'altra possibile elaborazione.
 
 \subsection{Diagramma degli stati}
+Di seguito è mostrato il diagramma degli stati della macchina e le relative transizioni, con specificate le condizioni nel caso di più possibili stati prossimi. Per renderlo più chiaro è stata omessa la transizione da ogni stato a quello di RESET, che può avvenire in qualsiasi momento con la ricezione di i\_rst alto.
+
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{diagram.png}
     \centering
-    \caption{Diagramma della macchina a stati, in figura sono state specificate le condizioni di transizione principali.}
+    \caption{Diagramma degli stati con condizione di transizione principali}
 \end{figure}
 
 \pagebreak
@@ -197,7 +199,7 @@ In questa simulazione è stato effettuato un test in una situazione standard. Da
 \end{figure}
 
 \subsubsection{Simulazione con immagine vuota}
-Si può vedere come nel caso di un'immagine vuota, dopo aver letto il numero di colonne e quello di righe, la macchina termini immediatamente l'esecuzione. Da notare che il segnale di enable viene alzato soltanto due volte, appunto quelle necessarie per leggere solo le dimensioni.
+Si può vedere come nel caso di un'immagine vuota, dopo aver letto il numero di colonne e quello di righe, la macchina termini immediatamente l'esecuzione. Da notare che il segnale di enable per la memoria viene alzato soltanto due volte, appunto quelle necessarie per leggere solo le dimensioni.
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{test-empty-image.png}
     \centering
@@ -222,7 +224,7 @@ Tra le specifiche di progetto è presente la richiesta che la macchina possa ess
 \end{figure}
 
 \subsubsection{Simulazione con immagini multiple}
-In questa simulazione si è testato l'elaborazione di immagini multiple controllando che la macchina rispetti correttamente il protocollo specificato. E possibile notare infatti che la macchina attende che il segnale di start venga alzato nuovamente prima di iniziare una nuova elaborazione. In particolare non è necessario un segnale di reset per far partire la nuova elaborazione.
+In questa simulazione si è testata l'elaborazione di immagini multiple controllando che la macchina rispetti correttamente il protocollo specificato. È possibile notare infatti che la macchina attende che il segnale di start venga alzato nuovamente prima di iniziare una nuova elaborazione. Da specifica inoltre è definito che non è necessario attendere un segnale di RESET dopo la prima esecuzione.
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{test-multiple-images.png}
     \centering
@@ -266,7 +268,7 @@ Di seguito è possibile visionare i principali risultati della sintesi del compo
 \pagebreak
 
 \section{Conclusioni}
-Il componente passa correttamente i test mostrati sia in behavioural che in post sintesi rispettando, almeno per i casi proposti, i requisiti della specifica. Sono stati scritti anche altri testbench per verificare il funzionamento in situazioni diverse e nei rispettivi casi limite. Per evitare di effettuare lo shift su 16 bit e poi controllarne il risultato, è stata implementata una soglia di overflow. In questo modo basta eseguire un confronto su 8 bit prima di shiftare il valore di new\_pixel\_value. Le operazioni di moltiplicazione e il calcolo di shift sono quelle più onerose, ma non è stato possibile trovare soluzioni alternative. Maggiori ottimizzazioni si potrebbero quindi effettuare trovando metodi migliori e meno onerosi di risorse.
+Il componente passa correttamente i test mostrati sia in behavioural che in post sintesi rispettando, almeno per i casi proposti, i requisiti della specifica. Sono stati scritti anche altri testbench per verificare il funzionamento in situazioni diverse e nei rispettivi casi limite. Per evitare di effettuare lo shift su 16 bit e poi controllarne il risultato, è stata implementata una soglia di overflow. In questo modo basta eseguire un confronto su 8 bit prima di shiftare, se serve, il valore di new\_pixel\_value. Le operazioni di moltiplicazione e di calcolo dello shift sono quelle più onerose, ma non è stato possibile trovare soluzioni alternative. Maggiori ottimizzazioni si potrebbero quindi effettuare trovando metodi migliori e meno onerosi di risorse.
 
 \printbibliography
 
