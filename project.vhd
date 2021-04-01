@@ -72,6 +72,7 @@ BEGIN
                     o_en <= '0';
                     o_we <= '0';
                     o_done <= '0';
+                    o_data <= "00000000";
                     IF i_start = '1' THEN
                         state_next <= READ_COLS_REQ;
                     ELSE
@@ -206,6 +207,7 @@ BEGIN
                     o_we <= '0';
                     o_en <= '0';
                     o_done <= '1';
+                    o_data <= "00000000";
                     IF (i_start = '0') THEN
                         state_next <= RESET;
                     ELSE
