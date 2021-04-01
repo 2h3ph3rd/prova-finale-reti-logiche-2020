@@ -63,7 +63,7 @@ ARCHITECTURE Behavioral OF project_reti_logiche IS
 BEGIN
     PROCESS (i_clk)
     BEGIN
-        IF (i_rst = '1') THEN
+        IF (i_rst = '1' AND state_next /= RESET) THEN
             state_next <= RESET;
         ELSIF (rising_edge(i_clk)) THEN
             CASE state_next IS
