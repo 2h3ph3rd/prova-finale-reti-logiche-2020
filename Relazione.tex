@@ -58,7 +58,7 @@ L'interfaccia del componente è stata definita nella specifica con i relativi se
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{memory.png}
     \centering
-    \caption{Dettagli della struttura della memoria}
+    \caption{Dettaglio della struttura della memoria ed esempio di equalizzazione}
 \end{figure}
 
 \pagebreak
@@ -85,7 +85,7 @@ Rispetto all'algoritmo descritto in precedenza, l'implementazione in VHDL richie
 \begin{itemize}
     \item La lettura dalla memoria non è istantanea, ma necessita di un ciclo di clock di attesa dopo aver effettuato la richiesta. In particolare nel componente è stato implementato lo stato MEM\_WAIT.
     \item L'assegnamento di valori ai segnali non è immediato, ma avviene al ciclo di clock successivo. Per questo motivo alcune operazioni vengono eseguite in stati successivi.
-    \item Non è possibile assegnare ad un segnale esso stesso seppure con modifiche. Questo richiede, ad esempio per il contatore, di utilizzare un altro segnale come appoggio per effettuare l'incremento.
+    \item Non è possibile assegnare ad un segnale esso stesso neppure con modifiche. Questo richiede, ad esempio per il contatore, di utilizzare un altro segnale come appoggio per effettuare l'incremento.
 \end{itemize}
 
 \pagebreak
@@ -101,9 +101,10 @@ Per eseguire la lettura dell'immagine è necessario conoscere la dimensione, sfr
 Questi segnali contengono, dopo la prima lettura dell'immagine, il valore del pixel massimo e minimo necessari per il calcolo delle varie formule di equalizzazione. Sono stati dichiarati di tipo INTEGER con range 0-255 perchè su di essi vengono effettuare diverse operazioni aritmetiche e logiche.
 
 \subsubsection{state\_next, state\_after\_wait e state\_after\_read}
-Per le transizioni tra i vari stati sono stati defini alcuni segnali che contengono gli stati prossimi. Di specifico state\_next contiente sempre lo stato immediatamente successivo, state\_after\_wait il seguente a MEM\_WAIT mentre state\_after\_read lo stato successivo a READ\_PIXEL.
+Per le transizioni tra i vari stati sono stati defini alcuni segnali che contengono gli stati prossimi. Di specifico state\_next contiene sempre lo stato immediatamente successivo, state\_after\_wait il seguente a MEM\_WAIT mentre state\_after\_read lo stato successivo a READ\_PIXEL.
 
 \begin{figure}[h]
+    \vspace{1cm}
     \includegraphics[width=\textwidth]{signals-definition.png}
     \centering
     \caption{Dichiarazione dei segnali utilizzati e del tipo TYPE\_STATE}
@@ -112,19 +113,20 @@ Per le transizioni tra i vari stati sono stati defini alcuni segnali che conteng
 \pagebreak
 
 \subsubsection{shift\_level e overflow\_threshold}
-Dopo aver calcolato minimo e massimo è possibile determinare il valore del delta\_value e del relativo shift\_level. In particolare oltre a questo valore è stato aggiunta anche la soglia di overflow utile per controllare il valore da equalizzare prima di effettuare lo shift.
+Dopo aver calcolato minimo e massimo è possibile determinare il valore del delta\_value e del relativo shift\_level. In particolare oltre a questo valore è stato aggiunta anche la soglia di overflow utile per controllare il valore da equalizzare prima di effettuare lo shift. Lo shift\_level è da definizione un valore intero compreso tra 0 e 8, mentre il delta\_value e l'overflow\_threshold contengono valori di pixel quindi appartengono al range 0-255.
 
 
 \subsubsection{pixel\_value e new\_pixel\_value}
 Entrambi questi segnali contengono valori di pixel dell'immagine e su di essi vengono effettuate diverse operazioni, per questo motivo sono di tipo INTEGER con range 0-255. In particolare pixel\_value contiene il valore di ciascun pixel letto mentre il new\_pixel\_value serve come appoggio per il calcolo del pixel equalizzato.
 
 \subsection{Esempio di utilizzo dei segnali}
-Per mostrare l'utilizzo effettivo dei segnali, qui di seguito è mostrata una possibile applicazione con il caso di esempio proposto per la struttura della memoria.
+Per mostrare l'utilizzo effettivo dei segnali, qui di seguito è presente una possibile applicazione con il caso di esempio proposto per la struttura della memoria.
 
 \begin{figure}[h]
+    \vspace{1cm}
     \includegraphics[width=\textwidth]{example.png}
     \centering
-    \caption{Equalizzazione dell'immagine di prova con relativi valori dei segnali fondamentali}
+    \caption{Esempio di equalizzazione di un'immagine con relativi valori dei segnali fondamentali}
 \end{figure}
 
 \pagebreak
@@ -241,18 +243,21 @@ Oltre alle simulazioni riportate, sono stati scritti altri testbench per effettu
 Di seguito è possibile visionare i principali risultati della sintesi del componente. Rispetto al report di utilizzo l'elevato numero di LUT e FF è dovuto principalmente alla moltiplicazione per il calcolo del numero di pixel e allo shift per l'equalizzazione dei pixel. Entrambe però sono operazioni fondamentali per la risoluzione dell'algoritmo e non sono stati trovati altri modi per ottimizzarle.
 
 \begin{figure}[h]
+    \vspace{0.1cm}
     \includegraphics[width=\textwidth]{schema.png}
     \centering
     \caption{Schema del componente sintetizzato.}
 \end{figure}
 
 \begin{figure}[h]
+    \vspace{0.4cm}
     \includegraphics[width=\textwidth]{timing.png}
     \centering
     \caption{Riassunto del report di timing}
 \end{figure}
 
 \begin{figure}[h]
+    \vspace{0.4cm}
     \includegraphics[scale=0.5]{utilization.png}
     \centering
     \caption{Riassunto del report di utilizzo}
@@ -261,7 +266,7 @@ Di seguito è possibile visionare i principali risultati della sintesi del compo
 \pagebreak
 
 \section{Conclusioni}
-Il componente passa correttamente i test mostrati sia in behavioural che in post sintesi rispettando, almeno per i casi proposti, i requisiti della specifica. Sono stati scritti anche altri testbench per verificare il funzionamento in situazioni diverse e nei rispettivi casi limite. Per evitare di effettuare lo shift su 16 bit e poi controllarne il risultato, è stata implementata una soglia di overflow. In questo modo basta eseguire un confronto su 8 bit prima di shiftare il valore di new\_pixel\_value. Le operazioni di moltiplicazione e il calcolo di shift sono quelle più onerose, ma non è stato possibile trovare soluzioni alternative. Maggiori ottimizzazioni si potrebbero quindi effettuare trovando metodi migliori e meno onerosi.
+Il componente passa correttamente i test mostrati sia in behavioural che in post sintesi rispettando, almeno per i casi proposti, i requisiti della specifica. Sono stati scritti anche altri testbench per verificare il funzionamento in situazioni diverse e nei rispettivi casi limite. Per evitare di effettuare lo shift su 16 bit e poi controllarne il risultato, è stata implementata una soglia di overflow. In questo modo basta eseguire un confronto su 8 bit prima di shiftare il valore di new\_pixel\_value. Le operazioni di moltiplicazione e il calcolo di shift sono quelle più onerose, ma non è stato possibile trovare soluzioni alternative. Maggiori ottimizzazioni si potrebbero quindi effettuare trovando metodi migliori e meno onerosi di risorse.
 
 \printbibliography
 
