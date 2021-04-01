@@ -135,7 +135,7 @@ Per mostrare l'utilizzo effettivo dei segnali, qui di seguito è presente una po
 Il modulo è stato realizzato come una macchina a stati, in particolare comprende 14 stati descritti di seguito.
 
 \subsubsection{RESET}
-Lo stato di RESET è lo stato iniziale della macchina ed è l'unico raggiungibile da tutti gli altri. Quando il componente riceve un segnale di i\_rst alto ferma l'esecuzione per poi ripartire dallo stato di reset. La macchina esce da questo stato solo con il segnale i\_start alto.
+Lo stato di RESET è lo stato iniziale della macchina ed è l'unico raggiungibile da tutti gli altri. Quando il componente riceve un segnale di i\_rst alto interrompe l'elaborazione corrente per poi ripartire dallo stato di reset. La macchina esce da questo stato solo con il segnale i\_start alto.
 
 \subsubsection{READ\_COLS\_REQ}
 Nel primo byte della memoria è salvato il numero di colonne dell'immagine. Questo stato si occupa di effettuare la relativa richiesta di lettura. Essendo una lettura è necessario attendere che la memoria elabori la richiesta, per questo motivo lo stato successivo è MEM\_WAIT.
@@ -268,7 +268,7 @@ Di seguito è possibile visionare i principali risultati della sintesi del compo
 \pagebreak
 
 \section{Conclusioni}
-Il componente passa correttamente i test mostrati sia in behavioural che in post sintesi rispettando, almeno per i casi proposti, i requisiti della specifica. Sono stati scritti anche altri testbench per verificare il funzionamento in situazioni diverse e nei rispettivi casi limite. Per evitare di effettuare lo shift su 16 bit e poi controllarne il risultato, è stata implementata una soglia di overflow. In questo modo basta eseguire un confronto su 8 bit prima di shiftare, se serve, il valore di new\_pixel\_value. Le operazioni di moltiplicazione e di calcolo dello shift sono quelle più onerose, ma non è stato possibile trovare soluzioni alternative. Maggiori ottimizzazioni si potrebbero quindi effettuare trovando metodi migliori e meno onerosi di risorse.
+Il componente passa correttamente i test mostrati sia in behavioral che in post sintesi rispettando, almeno per i casi proposti, i requisiti della specifica. Sono stati scritti anche altri testbench per verificare il funzionamento in situazioni diverse e nei rispettivi casi limite. Per evitare di effettuare lo shift su 16 bit e poi controllarne il risultato, è stata implementata una soglia di overflow. In questo modo basta eseguire un confronto su 8 bit prima di shiftare, se serve, il valore di new\_pixel\_value. Le operazioni di moltiplicazione e di calcolo dello shift sono quelle più onerose, ma non è stato possibile trovare soluzioni alternative. Maggiori ottimizzazioni si potrebbero quindi effettuare trovando metodi migliori e meno onerosi di risorse.
 
 \printbibliography
 
