@@ -2,7 +2,7 @@
 
 🇮🇹
 
-Questa repo contiene il codice per la prova finale di reti logiche svolto durante l'anno accademico 2020/2021.
+Questa repo contiene il codice per la prova finale di reti logiche svolta durante l'anno accademico 2020/2021.
 
 🇬🇧
 
